@@ -34,9 +34,10 @@ namespace OnlearnEducation
             string username = textBox1.Text.Trim();
             string password = textBox2.Text.Trim();
 
-            if (username == "" || password == "")
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                MessageBox.Show("Please enter both username and password.", "Missing Info", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please enter both username and password.", "Missing Info",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -46,32 +47,43 @@ namespace OnlearnEducation
                 {
                     conn.Open();
 
-                    string query = "SELECT * FROM users WHERE username = @username AND password = @password";
-                    MySqlCommand cmd = new MySqlCommand(query, conn);
-                    cmd.Parameters.AddWithValue("@username", username);
-                    cmd.Parameters.AddWithValue("@password", password); // Note: plain-text password
+                    string query = @"SELECT UserID, Username, Email 
+                           FROM users 
+                           WHERE username = @Username AND password = @Password";
 
-                    MySqlDataReader reader = cmd.ExecuteReader();
-
-                    if (reader.HasRows)
+                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
                     {
-                        MessageBox.Show("Login successful!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        // Optionally open a new form (like dashboard) here
-                        // this.Hide();
-                        // new DashboardForm().Show();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Invalid username or password.", "Login Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                        cmd.Parameters.AddWithValue("@Username", username);
+                        cmd.Parameters.AddWithValue("@Password", password);
 
-                    reader.Close();
-                    conn.Close();
+                        using (MySqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                int userId = reader["UserID"] != DBNull.Value ? Convert.ToInt32(reader["UserID"]) : 0;
+                                string userName = reader["Username"]?.ToString() ?? string.Empty;
+                                string userEmail = reader["Email"]?.ToString() ?? string.Empty;
+
+                                MessageBox.Show("Login successful!", "Success",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                                ProfileDashboard profileForm = new ProfileDashboard(userId, userName, userEmail);
+                                profileForm.Show();
+                                this.Hide();
+                            }
+                            else
+                            {
+                                MessageBox.Show("Invalid username or password.", "Login Failed",
+                                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Database error: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error during login: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

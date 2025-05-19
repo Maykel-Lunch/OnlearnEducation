@@ -1,6 +1,6 @@
 ﻿namespace OnlearnEducation
 {
-    partial class Form1
+    partial class Login
     {
         /// <summary>
         ///  Required designer variable.
@@ -52,15 +52,15 @@
             button2.UseVisualStyleBackColor = true;
             button2.Click += button2_Click;
             // 
-            // Form1
+            // Login
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(895, 584);
             Controls.Add(button2);
             Controls.Add(button1);
-            Name = "Form1";
-            Text = "Form1";
+            Name = "Login";
+            Text = "Login";
             ResumeLayout(false);
         }
 

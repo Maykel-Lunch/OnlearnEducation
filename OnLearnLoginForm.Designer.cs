@@ -67,11 +67,10 @@
             textBox2.Size = new Size(373, 31);
             textBox2.TabIndex = 3;
             textBox2.UseSystemPasswordChar = true;
-            textBox2.TextChanged += textBox2_TextChanged;
             // 
             // button1
             // 
-            button1.Location = new Point(262, 233);
+            button1.Location = new Point(265, 240);
             button1.Name = "button1";
             button1.Size = new Size(236, 50);
             button1.TabIndex = 4;
