@@ -81,3 +81,11 @@ C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-w
 C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
 C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Security.Cryptography.Pkcs.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\ClosedXML.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\ClosedXML.Parser.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\DocumentFormat.OpenXml.Framework.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\ExcelNumberFormat.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\RBush.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\SixLabors.Fonts.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\System.IO.Packaging.dll

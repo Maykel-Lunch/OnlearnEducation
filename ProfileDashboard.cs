@@ -11,6 +11,8 @@ using Microsoft.Data.SqlClient;
 using MySql.Data.MySqlClient;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.IO;
+using ClosedXML.Excel;
 
 namespace OnlearnEducation
 {
@@ -82,8 +84,8 @@ namespace OnlearnEducation
                                 // Add null checks and default values
                                 string courseName = reader["CourseName"]?.ToString() ?? "N/A";
                                 string instructorName = reader["InstructorName"]?.ToString() ?? "N/A";
-                                string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value 
-                                    ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d") 
+                                string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value
+                                    ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d")
                                     : "N/A";
 
                                 AddDataLabel(courseName, 0, rowIndex);
@@ -127,6 +129,106 @@ namespace OnlearnEducation
                 Padding = new Padding(5, 3, 5, 3)
             };
             tableLayoutPanel1.Controls.Add(label, column, row);
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnExportExcel_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+                {
+                    saveFileDialog.Filter = "Excel Files|*.xlsx";
+                    saveFileDialog.Title = "Save Enrolled Courses";
+                    saveFileDialog.FileName = $"EnrolledCourses_{DateTime.Now:yyyyMMdd}";
+
+                    if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                    {
+                        // Create a new DataTable
+                        DataTable dt = new DataTable();
+                        dt.Columns.Add("Course Name", typeof(string));
+                        dt.Columns.Add("Instructor", typeof(string));
+                        dt.Columns.Add("Enrollment Date", typeof(string));
+
+                        // Get data from database
+                        using (MySqlConnection connection = new MySqlConnection(connectionString))
+                        {
+                            string query = @"SELECT 
+                                    CourseName,
+                                    InstructorName,
+                                    EnrollmentDate
+                                FROM 
+                                    userenrollmentswithinstructor
+                                WHERE
+                                    UserID = @UserId";
+
+                            using (MySqlCommand command = new MySqlCommand(query, connection))
+                            {
+                                command.Parameters.AddWithValue("@UserId", _userId);
+                                connection.Open();
+
+                                using (MySqlDataReader reader = command.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        string courseName = reader["CourseName"]?.ToString() ?? "N/A";
+                                        string instructorName = reader["InstructorName"]?.ToString() ?? "N/A";
+                                        string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value 
+                                            ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d") 
+                                            : "N/A";
+
+                                        dt.Rows.Add(courseName, instructorName, enrollmentDate);
+                                    }
+                                }
+                            }
+                        }
+
+                        // Create Excel file
+                        using (XLWorkbook workbook = new XLWorkbook())
+                        {
+                            var worksheet = workbook.Worksheets.Add("Enrolled Courses");
+                            
+                            // Add title
+                            worksheet.Cell(1, 1).Value = $"Enrolled Courses for {Username.Text}";
+                            worksheet.Cell(1, 1).Style.Font.Bold = true;
+                            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
+                            worksheet.Range(1, 1, 1, 3).Merge();
+
+                            // Add headers
+                            worksheet.Cell(3, 1).Value = "Course Name";
+                            worksheet.Cell(3, 2).Value = "Instructor";
+                            worksheet.Cell(3, 3).Value = "Enrollment Date";
+                            worksheet.Range(3, 1, 3, 3).Style.Font.Bold = true;
+
+                            // Add data
+                            worksheet.Cell(4, 1).InsertTable(dt);
+
+                            // Auto-fit columns
+                            worksheet.Columns().AdjustToContents();
+
+                            // Save the file
+                            workbook.SaveAs(saveFileDialog.FileName);
+                        }
+
+                        MessageBox.Show("Courses exported successfully!", "Success", 
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error exporting to Excel: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }
