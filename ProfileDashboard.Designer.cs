@@ -33,6 +33,7 @@ namespace OnlearnEducation
             button1 = new Button();
             Username = new Label();
             UserEmail = new Label();
+            UserType = new Label();
             panel1 = new Panel();
             tableLayoutPanel1 = new TableLayoutPanel();
             topPanel = new Panel();
@@ -72,25 +73,40 @@ namespace OnlearnEducation
             UserEmail.TabIndex = 2;
             UserEmail.Text = "label2";
             // 
+            // UserType
+            // 
+            UserType.AutoSize = true;
+            UserType.BackColor = Color.Transparent;
+            UserType.Font = new Font("Segoe UI", 8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            UserType.Location = new Point(13, 78);
+            UserType.Name = "UserType";
+            UserType.Padding = new Padding(8, 4, 8, 4);
+            UserType.Size = new Size(96, 29);
+            UserType.TabIndex = 6;
+            UserType.Text = "UserType";
+            // 
             // panel1
             // 
-            panel1.AutoScroll = true;
             panel1.Controls.Add(tableLayoutPanel1);
             panel1.Dock = DockStyle.Fill;
-            panel1.Location = new Point(0, 80);
+            panel1.Location = new Point(0, 119);
             panel1.Name = "panel1";
             panel1.Padding = new Padding(10);
-            panel1.Size = new Size(956, 464);
+            panel1.Size = new Size(956, 425);
             panel1.TabIndex = 3;
             // 
             // tableLayoutPanel1
             // 
-            tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.AutoSize = true;
             tableLayoutPanel1.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            tableLayoutPanel1.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30F));
+            tableLayoutPanel1.Dock = DockStyle.Fill;
             tableLayoutPanel1.Location = new Point(10, 10);
             tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.Padding = new Padding(0);
+            tableLayoutPanel1.Size = new Size(936, 405);
             tableLayoutPanel1.TabIndex = 0;
             // 
             // topPanel
@@ -98,12 +114,13 @@ namespace OnlearnEducation
             topPanel.Controls.Add(button1);
             topPanel.Controls.Add(Username);
             topPanel.Controls.Add(UserEmail);
+            topPanel.Controls.Add(UserType);
             topPanel.Controls.Add(btnExportExcel);
             topPanel.Dock = DockStyle.Top;
             topPanel.Location = new Point(0, 0);
             topPanel.Name = "topPanel";
             topPanel.Padding = new Padding(10);
-            topPanel.Size = new Size(956, 80);
+            topPanel.Size = new Size(956, 119);
             topPanel.TabIndex = 4;
             // 
             // btnExportExcel
@@ -139,6 +156,7 @@ namespace OnlearnEducation
         private Button button1;
         private Label Username;
         private Label UserEmail;
+        private Label UserType;
         private Panel panel1;
         private TableLayoutPanel tableLayoutPanel1;
         private Panel topPanel;

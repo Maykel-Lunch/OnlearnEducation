@@ -13,6 +13,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 using System.IO;
 using ClosedXML.Excel;
+using System.Drawing.Drawing2D;
 
 namespace OnlearnEducation
 {
@@ -32,7 +33,11 @@ namespace OnlearnEducation
             tableLayoutPanel1.GrowStyle = TableLayoutPanelGrowStyle.AddRows;
 
             // Load data when form loads
-            this.Load += (s, e) => LoadEnrollmentData();
+            this.Load += (s, e) => 
+            {
+                LoadEnrollmentData();
+                LoadUserType();
+            };
         }
 
         private void LoadEnrollmentData()
@@ -88,6 +93,63 @@ namespace OnlearnEducation
             catch (Exception ex)
             {
                 MessageBox.Show($"Error loading enrollment data: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void LoadUserType()
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    string query = "SELECT UserType FROM users WHERE UserID = @UserId";
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@UserId", _userId);
+                        connection.Open();
+                        string userType = command.ExecuteScalar()?.ToString() ?? "Unknown";
+
+                        // Set the text and style based on user type
+                        UserType.Text = userType;
+                        switch (userType.ToLower())
+                        {
+                            case "student":
+                                UserType.ForeColor = Color.Green;
+                                break;
+                            case "instructor":
+                                UserType.ForeColor = Color.Blue;
+                                break;
+                            case "admin":
+                                UserType.ForeColor = Color.Red;
+                                break;
+                            default:
+                                UserType.ForeColor = Color.Gray;
+                                break;
+                        }
+
+                        // Create rounded border
+                        UserType.Paint += (s, e) =>
+                        {
+                            using (GraphicsPath path = new GraphicsPath())
+                            {
+                                int radius = 10;
+                                Rectangle rect = new Rectangle(0, 0, UserType.Width - 1, UserType.Height - 1);
+                                path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
+                                path.AddArc(rect.Right - radius, rect.Y, radius, radius, 270, 90);
+                                path.AddArc(rect.Right - radius, rect.Bottom - radius, radius, radius, 0, 90);
+                                path.AddArc(rect.X, rect.Bottom - radius, radius, radius, 90, 90);
+                                path.CloseAllFigures();
+
+                                UserType.Region = new Region(path);
+                            }
+                        };
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading user type: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
