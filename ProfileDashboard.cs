@@ -28,6 +28,9 @@ namespace OnlearnEducation
             Username.Text = username;
             UserEmail.Text = email;
 
+            // Set GrowStyle
+            tableLayoutPanel1.GrowStyle = TableLayoutPanelGrowStyle.AddRows;
+
             // Load data when form loads
             this.Load += (s, e) => LoadEnrollmentData();
         }
@@ -36,52 +39,36 @@ namespace OnlearnEducation
         {
             try
             {
-                // Clear existing controls
-                tableLayoutPanel1.Controls.Clear();
-                tableLayoutPanel1.RowStyles.Clear();
+            tableLayoutPanel1.Controls.Clear();
+                tableLayoutPanel1.ColumnStyles.Clear();
+            tableLayoutPanel1.RowStyles.Clear();
 
-                // Set up table structure
-                tableLayoutPanel1.ColumnCount = 3;
-                tableLayoutPanel1.RowCount = 1; // Start with header row
+            tableLayoutPanel1.ColumnCount = 3;
+                tableLayoutPanel1.RowCount = 1;
 
-                // Configure column widths
-                tableLayoutPanel1.ColumnStyles.Clear(); // Clear existing styles
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
 
-                // Add headers
-                AddHeaderLabel("Course Name", 0, 0);
-                AddHeaderLabel("Instructor", 1, 0);
-                AddHeaderLabel("Enrollment Date", 2, 0);
+            AddHeaderLabel("Course Name", 0, 0);
+            AddHeaderLabel("Instructor", 1, 0);
+            AddHeaderLabel("Enrollment Date", 2, 0);
 
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
-                    string query = @"SELECT 
-                            CourseName,
-                            InstructorName,
-                            EnrollmentDate
-                        FROM 
-                            userenrollmentswithinstructor
-                        WHERE
-                            UserID = @UserId";
-
-
+                    string query = @"SELECT CourseName, InstructorName, EnrollmentDate FROM userenrollmentswithinstructor WHERE UserID = @UserId";
                     using (MySqlCommand command = new MySqlCommand(query, connection))
                     {
                         command.Parameters.AddWithValue("@UserId", _userId);
                         connection.Open();
-
                         using (MySqlDataReader reader = command.ExecuteReader())
                         {
-                            int rowIndex = 1; // Start after header
-
+                            int rowIndex = 1;
                             while (reader.Read())
                             {
                                 tableLayoutPanel1.RowCount++;
                                 tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-                                // Add null checks and default values
                                 string courseName = reader["CourseName"]?.ToString() ?? "N/A";
                                 string instructorName = reader["InstructorName"]?.ToString() ?? "N/A";
                                 string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value
@@ -138,7 +125,94 @@ namespace OnlearnEducation
 
         private void button1_Click(object sender, EventArgs e)
         {
+           using (var form = new Form())
+            {
+                form.Text = "Change Password";
+                form.Size = new Size(500, 350);  // Increased width and height
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.FormBorderStyle = FormBorderStyle.FixedDialog;
+                form.MaximizeBox = false;
+                form.MinimizeBox = false;
 
+                // Adjust label and textbox positions with more spacing
+                var currentPasswordLabel = new Label { Text = "Current Password:", Location = new Point(20, 20), AutoSize = true };
+                var currentPasswordBox = new TextBox { Location = new Point(20, 45), Size = new Size(440, 25), PasswordChar = '•' };
+                
+                var newPasswordLabel = new Label { Text = "New Password:", Location = new Point(20, 90), AutoSize = true };
+                var newPasswordBox = new TextBox { Location = new Point(20, 115), Size = new Size(440, 25), PasswordChar = '•' };
+                
+                var confirmPasswordLabel = new Label { Text = "Confirm New Password:", Location = new Point(20, 160), AutoSize = true };
+                var confirmPasswordBox = new TextBox { Location = new Point(20, 185), Size = new Size(440, 25), PasswordChar = '•' };
+
+                var updateButton = new Button
+                {
+                    Text = "Update Password",
+                    Location = new Point(20, 250),  // Moved further down
+                    Size = new Size(440, 40),       // Wider and taller button
+                    DialogResult = DialogResult.OK
+                };
+
+                form.Controls.AddRange(new Control[] { 
+                    currentPasswordLabel, currentPasswordBox,
+                    newPasswordLabel, newPasswordBox,
+                    confirmPasswordLabel, confirmPasswordBox,
+                    updateButton
+                });
+
+                if (form.ShowDialog() == DialogResult.OK)
+                {
+                    if (string.IsNullOrWhiteSpace(currentPasswordBox.Text) || 
+                        string.IsNullOrWhiteSpace(newPasswordBox.Text) || 
+                        string.IsNullOrWhiteSpace(confirmPasswordBox.Text))
+                    {
+                        MessageBox.Show("All fields are required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    if (newPasswordBox.Text != confirmPasswordBox.Text)
+                    {
+                        MessageBox.Show("New passwords do not match.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    try
+                    {
+                        using (MySqlConnection connection = new MySqlConnection(connectionString))
+                        {
+                            connection.Open();
+                            
+                            // Verify current password
+                            string verifyQuery = "SELECT Password FROM users WHERE UserID = @UserId";
+                            using (MySqlCommand verifyCmd = new MySqlCommand(verifyQuery, connection))
+                            {
+                                verifyCmd.Parameters.AddWithValue("@UserId", _userId);
+                                string? currentStoredPassword = verifyCmd.ExecuteScalar()?.ToString();
+
+                                if (currentStoredPassword != currentPasswordBox.Text)
+                                {
+                                    MessageBox.Show("Current password is incorrect.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    return;
+                                }
+                            }
+
+                            // Update password
+                            string updateQuery = "UPDATE users SET Password = @NewPassword WHERE UserID = @UserId";
+                            using (MySqlCommand updateCmd = new MySqlCommand(updateQuery, connection))
+                            {
+                                updateCmd.Parameters.AddWithValue("@NewPassword", newPasswordBox.Text);
+                                updateCmd.Parameters.AddWithValue("@UserId", _userId);
+                                updateCmd.ExecuteNonQuery();
+                            }
+
+                            MessageBox.Show("Password updated successfully!", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error updating password: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
         }
 
         private void btnExportExcel_Click(object sender, EventArgs e)
