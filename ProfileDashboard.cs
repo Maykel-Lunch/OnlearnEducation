@@ -33,7 +33,7 @@ namespace OnlearnEducation
             tableLayoutPanel1.GrowStyle = TableLayoutPanelGrowStyle.AddRows;
 
             // Load data when form loads
-            this.Load += (s, e) => 
+            this.Load += (s, e) =>
             {
                 LoadEnrollmentData();
                 LoadUserType();
@@ -44,20 +44,20 @@ namespace OnlearnEducation
         {
             try
             {
-            tableLayoutPanel1.Controls.Clear();
+                tableLayoutPanel1.Controls.Clear();
                 tableLayoutPanel1.ColumnStyles.Clear();
-            tableLayoutPanel1.RowStyles.Clear();
+                tableLayoutPanel1.RowStyles.Clear();
 
-            tableLayoutPanel1.ColumnCount = 3;
+                tableLayoutPanel1.ColumnCount = 3;
                 tableLayoutPanel1.RowCount = 1;
 
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
+                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
+                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
 
-            AddHeaderLabel("Course Name", 0, 0);
-            AddHeaderLabel("Instructor", 1, 0);
-            AddHeaderLabel("Enrollment Date", 2, 0);
+                AddHeaderLabel("Course Name", 0, 0);
+                AddHeaderLabel("Instructor", 1, 0);
+                AddHeaderLabel("Enrollment Date", 2, 0);
 
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
@@ -116,15 +116,28 @@ namespace OnlearnEducation
                         {
                             case "student":
                                 UserType.ForeColor = Color.Green;
+                                btnAdminDashboard.Visible = false;
+                                btnStudentCourseLogin.Visible = true;
+                                btnInstructor.Visible = false;
                                 break;
                             case "instructor":
                                 UserType.ForeColor = Color.Blue;
+                                btnAdminDashboard.Visible = false;
+                                btnStudentCourseLogin.Visible = false;
+                                btnInstructor.Visible = true;
                                 break;
                             case "admin":
                                 UserType.ForeColor = Color.Red;
+                                btnAdminDashboard.Visible = true;
+                                btnStudentCourseLogin.Visible = false;
+                                btnInstructor.Visible = false;
                                 break;
                             default:
+                                UserType.Text = "Unknown User Type";
                                 UserType.ForeColor = Color.Gray;
+                                btnAdminDashboard.Visible = false;
+                                btnStudentCourseLogin.Visible = false;
+                                btnInstructor.Visible = false;
                                 break;
                         }
 
@@ -187,7 +200,7 @@ namespace OnlearnEducation
 
         private void button1_Click(object sender, EventArgs e)
         {
-           using (var form = new Form())
+            using (var form = new Form())
             {
                 form.Text = "Change Password";
                 form.Size = new Size(500, 350);  // Increased width and height
@@ -199,10 +212,10 @@ namespace OnlearnEducation
                 // Adjust label and textbox positions with more spacing
                 var currentPasswordLabel = new Label { Text = "Current Password:", Location = new Point(20, 20), AutoSize = true };
                 var currentPasswordBox = new TextBox { Location = new Point(20, 45), Size = new Size(440, 25), PasswordChar = '•' };
-                
+
                 var newPasswordLabel = new Label { Text = "New Password:", Location = new Point(20, 90), AutoSize = true };
                 var newPasswordBox = new TextBox { Location = new Point(20, 115), Size = new Size(440, 25), PasswordChar = '•' };
-                
+
                 var confirmPasswordLabel = new Label { Text = "Confirm New Password:", Location = new Point(20, 160), AutoSize = true };
                 var confirmPasswordBox = new TextBox { Location = new Point(20, 185), Size = new Size(440, 25), PasswordChar = '•' };
 
@@ -214,7 +227,7 @@ namespace OnlearnEducation
                     DialogResult = DialogResult.OK
                 };
 
-                form.Controls.AddRange(new Control[] { 
+                form.Controls.AddRange(new Control[] {
                     currentPasswordLabel, currentPasswordBox,
                     newPasswordLabel, newPasswordBox,
                     confirmPasswordLabel, confirmPasswordBox,
@@ -223,8 +236,8 @@ namespace OnlearnEducation
 
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    if (string.IsNullOrWhiteSpace(currentPasswordBox.Text) || 
-                        string.IsNullOrWhiteSpace(newPasswordBox.Text) || 
+                    if (string.IsNullOrWhiteSpace(currentPasswordBox.Text) ||
+                        string.IsNullOrWhiteSpace(newPasswordBox.Text) ||
                         string.IsNullOrWhiteSpace(confirmPasswordBox.Text))
                     {
                         MessageBox.Show("All fields are required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -242,7 +255,7 @@ namespace OnlearnEducation
                         using (MySqlConnection connection = new MySqlConnection(connectionString))
                         {
                             connection.Open();
-                            
+
                             // Verify current password
                             string verifyQuery = "SELECT Password FROM users WHERE UserID = @UserId";
                             using (MySqlCommand verifyCmd = new MySqlCommand(verifyQuery, connection))
@@ -318,8 +331,8 @@ namespace OnlearnEducation
                                     {
                                         string courseName = reader["CourseName"]?.ToString() ?? "N/A";
                                         string instructorName = reader["InstructorName"]?.ToString() ?? "N/A";
-                                        string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value 
-                                            ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d") 
+                                        string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value
+                                            ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d")
                                             : "N/A";
 
                                         dt.Rows.Add(courseName, instructorName, enrollmentDate);
@@ -332,7 +345,7 @@ namespace OnlearnEducation
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Enrolled Courses");
-                            
+
                             // Add title
                             worksheet.Cell(1, 1).Value = $"Enrolled Courses for {Username.Text}";
                             worksheet.Cell(1, 1).Style.Font.Bold = true;
@@ -355,7 +368,7 @@ namespace OnlearnEducation
                             workbook.SaveAs(saveFileDialog.FileName);
                         }
 
-                        MessageBox.Show("Courses exported successfully!", "Success", 
+                        MessageBox.Show("Courses exported successfully!", "Success",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
@@ -363,6 +376,74 @@ namespace OnlearnEducation
             catch (Exception ex)
             {
                 MessageBox.Show($"Error exporting to Excel: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnAdminDashboard_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Adminboard adminBoard = new Adminboard(_userId, Username.Text, UserEmail.Text);
+                adminBoard.Show();
+                this.Hide();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening admin dashboard: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnStudentCourseLogin_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Studentboard studentBoard = new Studentboard(_userId, Username.Text, UserEmail.Text);
+                studentBoard.Show();
+                this.Hide();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening student dashboard: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnInstructor_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                Instructorboard instructorBoard = new Instructorboard(_userId, Username.Text, UserEmail.Text);
+                instructorBoard.Show();
+                this.Hide();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening instructor dashboard: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void UserType_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            try
+            {
+                // Show the login form
+                OnLearnLoginForm loginForm = new OnLearnLoginForm();
+                loginForm.Show();
+                
+                // Close the current form
+                this.Close();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error during logout: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

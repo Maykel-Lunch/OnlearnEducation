@@ -1,6 +1,6 @@
 ﻿namespace OnlearnEducation
 {
-    partial class Adminboard
+    partial class Studentboard
     {
         /// <summary>
         /// Required designer variable.
@@ -28,25 +28,17 @@
         /// </summary>
         private void InitializeComponent()
         {
-            dataGridView1 = new DataGridView();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panel1 = new Panel();
             btnLogout = new Button();
             button1 = new Button();
             btnExportExcel = new Button();
             label3 = new Label();
             label2 = new Label();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            studentGridView = new DataGridView();
             panel1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)studentGridView).BeginInit();
             SuspendLayout();
-            // 
-            // dataGridView1
-            // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(12, 140);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.RowHeadersWidth = 62;
-            dataGridView1.Size = new Size(861, 298);
-            dataGridView1.TabIndex = 0;
             // 
             // panel1
             // 
@@ -58,7 +50,7 @@
             panel1.Location = new Point(12, 12);
             panel1.Name = "panel1";
             panel1.Size = new Size(861, 114);
-            panel1.TabIndex = 1;
+            panel1.TabIndex = 2;
             // 
             // btnLogout
             // 
@@ -83,7 +75,6 @@
             button1.TabIndex = 7;
             button1.Text = "Change my password? ";
             button1.UseVisualStyleBackColor = true;
-            button1.Click += button1_Click;
             // 
             // btnExportExcel
             // 
@@ -93,7 +84,6 @@
             btnExportExcel.Size = new Size(209, 27);
             btnExportExcel.TabIndex = 6;
             btnExportExcel.Text = "Download Students Info";
-            btnExportExcel.Click += btnExportExcel_Click;
             // 
             // label3
             // 
@@ -114,29 +104,49 @@
             label2.TabIndex = 0;
             label2.Text = "label1";
             // 
-            // Adminboard
+            // studentGridView
+            // 
+            studentGridView.AllowUserToOrderColumns = true;
+            studentGridView.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.DisplayedCells;
+            dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dataGridViewCellStyle1.BackColor = SystemColors.Control;
+            dataGridViewCellStyle1.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            dataGridViewCellStyle1.ForeColor = SystemColors.WindowText;
+            dataGridViewCellStyle1.SelectionBackColor = SystemColors.Highlight;
+            dataGridViewCellStyle1.SelectionForeColor = SystemColors.HighlightText;
+            dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
+            studentGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
+            studentGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            studentGridView.Dock = DockStyle.Bottom;
+            studentGridView.Location = new Point(0, 132);
+            studentGridView.Name = "studentGridView";
+            studentGridView.RowHeadersWidth = 62;
+            studentGridView.Size = new Size(880, 318);
+            studentGridView.TabIndex = 3;
+            // 
+            // Studentboard
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(885, 450);
+            ClientSize = new Size(880, 450);
+            Controls.Add(studentGridView);
             Controls.Add(panel1);
-            Controls.Add(dataGridView1);
-            Name = "Adminboard";
-            Text = "Adminboard";
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            Name = "Studentboard";
+            Text = "Studentboard";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)studentGridView).EndInit();
             ResumeLayout(false);
         }
 
         #endregion
 
-        private DataGridView dataGridView1;
         private Panel panel1;
-        private Button btnExportExcel;
+        private Button btnLogout;
         private Button button1;
+        private Button btnExportExcel;
         private Label label3;
         private Label label2;
-        private Button btnLogout;
+        private DataGridView studentGridView;
     }
 }

@@ -37,7 +37,11 @@ namespace OnlearnEducation
             panel1 = new Panel();
             tableLayoutPanel1 = new TableLayoutPanel();
             topPanel = new Panel();
+            btnInstructor = new Button();
+            btnLogout = new Button();
+            btnStudentCourseLogin = new Button();
             btnExportExcel = new Button();
+            btnAdminDashboard = new Button();
             panel1.SuspendLayout();
             topPanel.SuspendLayout();
             SuspendLayout();
@@ -45,7 +49,7 @@ namespace OnlearnEducation
             // button1
             // 
             button1.Font = new Font("Segoe UI", 8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button1.Location = new Point(742, 12);
+            button1.Location = new Point(743, 45);
             button1.Name = "button1";
             button1.Size = new Size(201, 34);
             button1.TabIndex = 0;
@@ -78,12 +82,13 @@ namespace OnlearnEducation
             UserType.AutoSize = true;
             UserType.BackColor = Color.Transparent;
             UserType.Font = new Font("Segoe UI", 8F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            UserType.Location = new Point(13, 78);
+            UserType.Location = new Point(13, 83);
             UserType.Name = "UserType";
             UserType.Padding = new Padding(8, 4, 8, 4);
             UserType.Size = new Size(96, 29);
             UserType.TabIndex = 6;
             UserType.Text = "UserType";
+            UserType.Click += UserType_Click;
             // 
             // panel1
             // 
@@ -111,11 +116,15 @@ namespace OnlearnEducation
             // 
             // topPanel
             // 
+            topPanel.Controls.Add(btnInstructor);
+            topPanel.Controls.Add(btnLogout);
+            topPanel.Controls.Add(btnStudentCourseLogin);
             topPanel.Controls.Add(button1);
             topPanel.Controls.Add(Username);
             topPanel.Controls.Add(UserEmail);
             topPanel.Controls.Add(UserType);
             topPanel.Controls.Add(btnExportExcel);
+            topPanel.Controls.Add(btnAdminDashboard);
             topPanel.Dock = DockStyle.Top;
             topPanel.Location = new Point(0, 0);
             topPanel.Name = "topPanel";
@@ -123,15 +132,65 @@ namespace OnlearnEducation
             topPanel.Size = new Size(956, 119);
             topPanel.TabIndex = 4;
             // 
+            // btnInstructor
+            // 
+            btnInstructor.Font = new Font("Segoe UI", 8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnInstructor.Location = new Point(115, 81);
+            btnInstructor.Name = "btnInstructor";
+            btnInstructor.Size = new Size(277, 32);
+            btnInstructor.TabIndex = 10;
+            btnInstructor.Text = "Your Student and Course Lists";
+            btnInstructor.UseVisualStyleBackColor = true;
+            btnInstructor.Visible = false;
+            btnInstructor.Click += btnInstructor_Click;
+            // 
+            // btnLogout
+            // 
+            btnLogout.BackColor = Color.Red;
+            btnLogout.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnLogout.ForeColor = SystemColors.ControlLightLight;
+            btnLogout.ImageKey = "(none)";
+            btnLogout.Location = new Point(831, 5);
+            btnLogout.Name = "btnLogout";
+            btnLogout.Size = new Size(112, 34);
+            btnLogout.TabIndex = 9;
+            btnLogout.Text = "Logout";
+            btnLogout.UseVisualStyleBackColor = false;
+            btnLogout.Click += button2_Click_1;
+            // 
+            // btnStudentCourseLogin
+            // 
+            btnStudentCourseLogin.Font = new Font("Segoe UI", 8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnStudentCourseLogin.Location = new Point(115, 80);
+            btnStudentCourseLogin.Name = "btnStudentCourseLogin";
+            btnStudentCourseLogin.Size = new Size(201, 36);
+            btnStudentCourseLogin.TabIndex = 8;
+            btnStudentCourseLogin.Text = "Start Learning";
+            btnStudentCourseLogin.UseVisualStyleBackColor = true;
+            btnStudentCourseLogin.Visible = false;
+            btnStudentCourseLogin.Click += btnStudentCourseLogin_Click;
+            // 
             // btnExportExcel
             // 
             btnExportExcel.Font = new Font("Segoe UI", 8F, FontStyle.Italic, GraphicsUnit.Point, 0);
-            btnExportExcel.Location = new Point(690, 46);
+            btnExportExcel.Location = new Point(690, 85);
             btnExportExcel.Name = "btnExportExcel";
             btnExportExcel.Size = new Size(253, 27);
             btnExportExcel.TabIndex = 5;
             btnExportExcel.Text = "Download Enrolled Course Info";
             btnExportExcel.Click += btnExportExcel_Click;
+            // 
+            // btnAdminDashboard
+            // 
+            btnAdminDashboard.Font = new Font("Segoe UI", 8F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnAdminDashboard.Location = new Point(115, 80);
+            btnAdminDashboard.Name = "btnAdminDashboard";
+            btnAdminDashboard.Size = new Size(201, 27);
+            btnAdminDashboard.TabIndex = 7;
+            btnAdminDashboard.Text = "Admin Dashboard";
+            btnAdminDashboard.UseVisualStyleBackColor = true;
+            btnAdminDashboard.Visible = false;
+            btnAdminDashboard.Click += btnAdminDashboard_Click;
             // 
             // ProfileDashboard
             // 
@@ -161,5 +220,9 @@ namespace OnlearnEducation
         private TableLayoutPanel tableLayoutPanel1;
         private Panel topPanel;
         private Button btnExportExcel;
+        private Button btnAdminDashboard;
+        private Button btnStudentCourseLogin;
+        private Button btnLogout;
+        private Button btnInstructor;
     }
 }

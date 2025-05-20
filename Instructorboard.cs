@@ -10,21 +10,21 @@ using System.Windows.Forms;
 
 namespace OnlearnEducation
 {
-    public partial class Adminboard : Form
+    public partial class Instructorboard : Form
     {
         private int _userId;
         private string _username;
         private string _email;
 
-        public Adminboard(int userId, string username, string email)
+        public Instructorboard(int userId, string username, string email)
         {
             InitializeComponent();
             _userId = userId;
             _username = username;
             _email = email;
             
-            // Set window title with admin name
-            this.Text = $"Admin Dashboard - {username}";
+            // Set window title with instructor name
+            this.Text = $"Instructor Dashboard - {username}";
             
             // Set labels
             label2.Text = username;
@@ -56,11 +56,6 @@ namespace OnlearnEducation
         private void button1_Click(object sender, EventArgs e)
         {
             // Password change functionality will be implemented here
-        }
-
-        private void btnExportExcel_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }
