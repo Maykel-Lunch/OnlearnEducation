@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using ClosedXML.Excel;
+using System.IO;
 
 namespace OnlearnEducation
 {
@@ -143,99 +144,78 @@ namespace OnlearnEducation
 
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        // Create a new DataTable
-                        DataTable dt = (DataTable)studentGridView.DataSource;
-
-                        // Create Excel file
-                        using (XLWorkbook workbook = new XLWorkbook())
+                        // Get the template file path
+                        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "StudentDashboard_Template.xlsx");
+                        
+                        if (!File.Exists(templatePath))
                         {
-                            var worksheet = workbook.Worksheets.Add("Student Dashboard");
-                            
-                            // Add title
-                            worksheet.Cell(1, 1).Value = $"Student Dashboard for {_username}";
-                            worksheet.Cell(1, 1).Style.Font.Bold = true;
-                            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
-                            worksheet.Range(1, 1, 1, dt.Columns.Count).Merge();
+                            MessageBox.Show($"Template file not found at: {templatePath}\nPlease ensure StudentDashboard_Template.xlsx exists in the Templates folder.", 
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
 
-                            // Add data
-                            worksheet.Cell(3, 1).InsertTable(dt);
+                        // Create a copy of the template
+                        File.Copy(templatePath, saveFileDialog.FileName, true);
 
-                            // Auto-fit columns
-                            worksheet.Columns().AdjustToContents();
+                        // Open the copied file
+                        using (XLWorkbook workbook = new XLWorkbook(saveFileDialog.FileName))
+                        {
+                            var worksheet = workbook.Worksheet("Data");
+                            var dt = (DataTable)studentGridView.DataSource;
 
-                            // Add a chart for grades
-                            if (dt.Columns.Contains("RecentGrade"))
+                            // Insert data starting at row 8 (after headers)
+                            for (int i = 0; i < dt.Rows.Count; i++)
                             {
-                                var chart = worksheet.Workbook.Worksheets.Add($"{worksheet.Name} Charts");
-                                chart.Cell(1, 1).Value = "Grade Analysis";
-                                chart.Cell(1, 1).Style.Font.Bold = true;
-                                chart.Cell(1, 1).Style.Font.FontSize = 14;
-
-                                // Prepare data for charts
-                                int dataRow = 3;
-                                chart.Cell(dataRow, 1).Value = "Course";
-                                chart.Cell(dataRow, 2).Value = "Grade";
-                                chart.Cell(dataRow, 3).Value = "Status";
-                                chart.Cell(dataRow, 4).Value = "Percentage";
-                                chart.Range(dataRow, 1, dataRow, 4).Style.Font.Bold = true;
-
-                                // Add data for charts
-                                double totalGrade = 0;
-                                int passCount = 0;
-                                int failCount = 0;
-
-                                foreach (DataRow row in dt.Rows)
+                                for (int j = 0; j < dt.Columns.Count; j++)
                                 {
-                                    if (row["RecentGrade"] != DBNull.Value)
+                                    var cell = worksheet.Cell(i + 8, j + 1);
+                                    cell.Value = dt.Rows[i][j].ToString();
+
+                                    // Apply specific formatting based on column type
+                                    if (dt.Columns[j].ColumnName.Contains("Date"))
                                     {
-                                        dataRow++;
-                                        double grade = Convert.ToDouble(row["RecentGrade"]);
-                                        string status = grade >= 60 ? "Passed" : "Failed";
-                                        
-                                        chart.Cell(dataRow, 1).Value = row["CourseName"].ToString();
-                                        chart.Cell(dataRow, 2).Value = grade;
-                                        chart.Cell(dataRow, 3).Value = status;
-                                        
-                                        totalGrade += grade;
-                                        if (status == "Passed") passCount++;
-                                        else failCount++;
+                                        cell.Style.NumberFormat.Format = "mm/dd/yyyy";
+                                    }
+                                    else if (dt.Columns[j].ColumnName == "FeedbackRating" || 
+                                            dt.Columns[j].ColumnName == "RecentGrade")
+                                    {
+                                        cell.Style.NumberFormat.Format = "0.00";
                                     }
                                 }
-
-                                // Add summary statistics
-                                dataRow += 2;
-                                chart.Cell(dataRow, 1).Value = "Summary Statistics";
-                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "Total Courses:";
-                                chart.Cell(dataRow, 2).Value = dt.Rows.Count;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "Average Grade:";
-                                chart.Cell(dataRow, 2).Value = totalGrade / dt.Rows.Count;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "Pass Rate:";
-                                chart.Cell(dataRow, 2).Value = (double)passCount / dt.Rows.Count;
-                                chart.Cell(dataRow, 2).Style.NumberFormat.Format = "0.00%";
-
-                                // Add instructions for creating charts
-                                dataRow += 2;
-                                chart.Cell(dataRow, 1).Value = "To create charts in Excel:";
-                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "1. Select the data range (A3:D" + (dataRow - 2) + ")";
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "2. Go to Insert > Charts";
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "3. Choose Bar Chart for Grade distribution";
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "4. Choose Pie Chart for Pass/Fail distribution";
-
-                                // Auto-fit columns
-                                chart.Columns().AdjustToContents();
                             }
 
+                            // Update summary sheet
+                            var summarySheet = workbook.Worksheet("Summary");
+                            summarySheet.Cell("A3").Value = dt.Rows.Count; // Total courses
+
+                            // Calculate average grade
+                            double totalGrade = 0;
+                            int gradeCount = 0;
+                            foreach (DataRow row in dt.Rows)
+                            {
+                                if (row["RecentGrade"] != DBNull.Value)
+                                {
+                                    totalGrade += Convert.ToDouble(row["RecentGrade"]);
+                                    gradeCount++;
+                                }
+                            }
+                            summarySheet.Cell("A4").Value = gradeCount > 0 ? totalGrade / gradeCount : 0;
+                            summarySheet.Cell("A4").Style.NumberFormat.Format = "0.00";
+
+                            // Calculate pass rate
+                            int passCount = 0;
+                            foreach (DataRow row in dt.Rows)
+                            {
+                                if (row["RecentGrade"] != DBNull.Value && Convert.ToDouble(row["RecentGrade"]) >= 60)
+                                {
+                                    passCount++;
+                                }
+                            }
+                            summarySheet.Cell("A5").Value = dt.Rows.Count > 0 ? (double)passCount / dt.Rows.Count : 0;
+                            summarySheet.Cell("A5").Style.NumberFormat.Format = "0.00%";
+
                             // Save the file
-                            workbook.SaveAs(saveFileDialog.FileName);
+                            workbook.Save();
                         }
 
                         MessageBox.Show("Dashboard exported successfully!", "Success", 

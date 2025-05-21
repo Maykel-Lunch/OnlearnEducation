@@ -1,0 +1,18 @@
+// Create a new Excel workbook with the following structure:
+// Sheet "Data":
+// - Headers in row 7: CourseName, CourseDescription, InstructorName, NextAssignment, NextAssignmentDueDate, DaysRemaining, RecentGrade, NextQuiz, QuizTotalMarks, FeedbackRating
+// - Data starts from row 8
+// - AutoFilter enabled on row 7
+// - Table formatting applied to A7:J1000
+// - Column widths adjusted for content
+
+// Sheet "Charts":
+// - Bar chart for grade distribution (A1:F20)
+// - Pie chart for pass/fail status (H1:M20)
+// - Both charts reference data from Data sheet
+
+// Sheet "Summary":
+// - Total courses count (A3)
+// - Average grade (A4)
+// - Pass rate percentage (A5)
+// - All cells formatted with appropriate number formats

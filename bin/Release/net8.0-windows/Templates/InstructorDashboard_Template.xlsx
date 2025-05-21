@@ -1,0 +1,19 @@
+// Create a new Excel workbook with the following structure:
+// Sheet "Data":
+// - Headers in row 7: CourseID, CourseName, Enrolled_Students, Active_Assignments, Ungraded_Submissions, Avg_Feedback_Rating, Next_Assignment_Due, Quiz_Count, Course_Description, Submission_Rate_Pct
+// - Data starts from row 8
+// - AutoFilter enabled on row 7
+// - Table formatting applied to A7:J1000
+// - Column widths adjusted for content
+
+// Sheet "Charts":
+// - Bar chart for enrollment distribution (A1:F20)
+// - Pie chart for feedback ratings (H1:M20)
+// - Both charts reference data from Data sheet
+
+// Sheet "Summary":
+// - Total courses count (A3)
+// - Total enrolled students (A4)
+// - Average feedback rating (A5)
+// - Submission rate percentage (A6)
+// - All cells formatted with appropriate number formats

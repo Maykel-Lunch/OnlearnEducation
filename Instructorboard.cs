@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using ClosedXML.Excel;
+using System.IO;
 
 namespace OnlearnEducation
 {
@@ -147,187 +148,94 @@ namespace OnlearnEducation
 
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        // Create a new DataTable
-                        DataTable dt = (DataTable)instructorGridView.DataSource;
-
-                        // Create Excel file
-                        using (XLWorkbook workbook = new XLWorkbook())
+                        // Get the template file path
+                        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "InstructorDashboard_Template.xlsx");
+                        
+                        if (!File.Exists(templatePath))
                         {
-                            var worksheet = workbook.Worksheets.Add("Instructor Dashboard");
+                            MessageBox.Show($"Template file not found at: {templatePath}\nPlease ensure InstructorDashboard_Template.xlsx exists in the Templates folder.", 
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
 
-                            // Add title
-                            worksheet.Cell(1, 1).Value = $"Instructor Dashboard for {_username}";
-                            worksheet.Cell(1, 1).Style.Font.Bold = true;
-                            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
-                            worksheet.Range(1, 1, 1, dt.Columns.Count).Merge();
+                        // Create a copy of the template
+                        File.Copy(templatePath, saveFileDialog.FileName, true);
 
-                            // Add data table starting at column A
-                            worksheet.Cell(3, 1).InsertTable(dt);
+                        // Open the copied file
+                        using (XLWorkbook workbook = new XLWorkbook(saveFileDialog.FileName))
+                        {
+                            var worksheet = workbook.Worksheet("Data");
+                            var dt = (DataTable)instructorGridView.DataSource;
 
-                            // Add visualization starting at column M (13th column)
-                            int vizStartCol = 13; // Column M
-                            int lastRow = dt.Rows.Count + 3;
-
-                            // Add summary section
-                            worksheet.Cell(3, vizStartCol).Value = "Course Analytics Summary";
-                            worksheet.Cell(3, vizStartCol).Style.Font.Bold = true;
-                            worksheet.Cell(3, vizStartCol).Style.Font.FontSize = 12;
-
-                            // Add row count
-                            worksheet.Cell(4, vizStartCol).Value = "Total Courses:";
-                            worksheet.Cell(4, vizStartCol + 1).Value = dt.Rows.Count;
-                            worksheet.Cell(4, vizStartCol + 1).Style.Font.Bold = true;
-
-                            // Add statistics for numeric columns
-                            if (dt.Columns.Contains("Enrolled_Students"))
+                            // Insert data starting at row 8 (after headers)
+                            for (int i = 0; i < dt.Rows.Count; i++)
                             {
-                                double totalStudents = 0;
-                                foreach (DataRow row in dt.Rows)
+                                for (int j = 0; j < dt.Columns.Count; j++)
                                 {
-                                    if (row["Enrolled_Students"] != DBNull.Value)
+                                    var cell = worksheet.Cell(i + 8, j + 1);
+                                    cell.Value = dt.Rows[i][j].ToString();
+
+                                    // Apply specific formatting based on column type
+                                    if (dt.Columns[j].ColumnName.Contains("Date"))
                                     {
-                                        totalStudents += Convert.ToDouble(row["Enrolled_Students"]);
+                                        cell.Style.NumberFormat.Format = "mm/dd/yyyy";
+                                    }
+                                    else if (dt.Columns[j].ColumnName == "Avg_Feedback_Rating")
+                                    {
+                                        cell.Style.NumberFormat.Format = "0.00";
+                                    }
+                                    else if (dt.Columns[j].ColumnName == "Submission_Rate_Pct")
+                                    {
+                                        cell.Style.NumberFormat.Format = "0.00%";
                                     }
                                 }
-                                worksheet.Cell(5, vizStartCol).Value = "Total Enrolled Students:";
-                                worksheet.Cell(5, vizStartCol + 1).Value = totalStudents;
                             }
 
-                            if (dt.Columns.Contains("Avg_Feedback_Rating"))
+                            // Update summary sheet
+                            var summarySheet = workbook.Worksheet("Summary");
+                            summarySheet.Cell("A3").Value = dt.Rows.Count; // Total courses
+
+                            // Calculate total enrolled students
+                            double totalStudents = 0;
+                            foreach (DataRow row in dt.Rows)
                             {
-                                double sum = 0;
-                                int count = 0;
-                                foreach (DataRow row in dt.Rows)
+                                if (row["Enrolled_Students"] != DBNull.Value)
                                 {
-                                    if (row["Avg_Feedback_Rating"] != DBNull.Value)
-                                    {
-                                        sum += Convert.ToDouble(row["Avg_Feedback_Rating"]);
-                                        count++;
-                                    }
-                                }
-                                if (count > 0)
-                                {
-                                    worksheet.Cell(6, vizStartCol).Value = "Average Feedback Rating:";
-                                    worksheet.Cell(6, vizStartCol + 1).Value = sum / count;
-                                    worksheet.Cell(6, vizStartCol + 1).Style.NumberFormat.Format = "0.00";
+                                    totalStudents += Convert.ToDouble(row["Enrolled_Students"]);
                                 }
                             }
+                            summarySheet.Cell("A4").Value = totalStudents;
 
-                            // Add a chart for enrollment distribution
-                            if (dt.Columns.Contains("Enrolled_Students"))
+                            // Calculate average feedback rating
+                            double totalRating = 0;
+                            int ratingCount = 0;
+                            foreach (DataRow row in dt.Rows)
                             {
-                                var chart = worksheet.Workbook.Worksheets.Add($"{worksheet.Name} Charts");
-                                chart.Cell(1, 1).Value = "Course Analytics";
-                                chart.Cell(1, 1).Style.Font.Bold = true;
-                                chart.Cell(1, 1).Style.Font.FontSize = 14;
-
-                                // Prepare data for charts
-                                int dataRow = 3;
-                                chart.Cell(dataRow, 1).Value = "Course";
-                                chart.Cell(dataRow, 2).Value = "Enrolled Students";
-                                chart.Cell(dataRow, 3).Value = "Feedback Rating";
-                                chart.Cell(dataRow, 4).Value = "Enrollment %";
-                                chart.Range(dataRow, 1, dataRow, 4).Style.Font.Bold = true;
-
-                                // Add data for charts
-                                double totalStudents = 0;
-                                double totalRating = 0;
-                                int ratingCount = 0;
-
-                                foreach (DataRow row in dt.Rows)
+                                if (row["Avg_Feedback_Rating"] != DBNull.Value)
                                 {
-                                    if (row["Enrolled_Students"] != DBNull.Value)
-                                    {
-                                        dataRow++;
-                                        double students = Convert.ToDouble(row["Enrolled_Students"]);
-                                        totalStudents += students;
-                                        
-                                        chart.Cell(dataRow, 1).Value = row["CourseName"].ToString();
-                                        chart.Cell(dataRow, 2).Value = students;
-                                        
-                                        if (row["Avg_Feedback_Rating"] != DBNull.Value)
-                                        {
-                                            double rating = Convert.ToDouble(row["Avg_Feedback_Rating"]);
-                                            chart.Cell(dataRow, 3).Value = rating;
-                                            totalRating += rating;
-                                            ratingCount++;
-                                        }
-                                    }
+                                    totalRating += Convert.ToDouble(row["Avg_Feedback_Rating"]);
+                                    ratingCount++;
                                 }
-
-                                // Calculate and add percentages
-                                dataRow = 3;
-                                foreach (DataRow row in dt.Rows)
-                                {
-                                    if (row["Enrolled_Students"] != DBNull.Value)
-                                    {
-                                        dataRow++;
-                                        double students = Convert.ToDouble(row["Enrolled_Students"]);
-                                        double percentage = totalStudents > 0 ? (students / totalStudents) * 100 : 0;
-                                        chart.Cell(dataRow, 4).Value = percentage;
-                                        chart.Cell(dataRow, 4).Style.NumberFormat.Format = "0.00%";
-                                    }
-                                }
-
-                                // Add summary statistics
-                                dataRow += 2;
-                                chart.Cell(dataRow, 1).Value = "Summary Statistics";
-                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "Total Students:";
-                                chart.Cell(dataRow, 2).Value = totalStudents;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "Average Students per Course:";
-                                chart.Cell(dataRow, 2).Value = totalStudents / dt.Rows.Count;
-                                dataRow++;
-                                if (ratingCount > 0)
-                                {
-                                    chart.Cell(dataRow, 1).Value = "Average Feedback Rating:";
-                                    chart.Cell(dataRow, 2).Value = totalRating / ratingCount;
-                                    chart.Cell(dataRow, 2).Style.NumberFormat.Format = "0.00";
-                                }
-
-                                // Add instructions for creating charts
-                                dataRow += 2;
-                                chart.Cell(dataRow, 1).Value = "To create charts in Excel:";
-                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "1. Select the data range (A3:D" + (dataRow - 2) + ")";
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "2. Go to Insert > Charts";
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "3. Choose Bar Chart for Enrollment distribution";
-                                dataRow++;
-                                chart.Cell(dataRow, 1).Value = "4. Choose Pie Chart for Course distribution";
-
-                                // Auto-fit columns
-                                chart.Columns().AdjustToContents();
                             }
+                            summarySheet.Cell("A5").Value = ratingCount > 0 ? totalRating / ratingCount : 0;
+                            summarySheet.Cell("A5").Style.NumberFormat.Format = "0.00";
 
-                            // Format the data table
-                            var dataRange = worksheet.Range(3, 1, lastRow, dt.Columns.Count);
-                            dataRange.Style.NumberFormat.Format = "@"; // Text format by default
-
-                            // Format specific columns
-                            var dateColumn = dt.Columns["Next_Assignment_Due"];
-                            if (dateColumn != null)
+                            // Calculate average submission rate
+                            double totalSubmissionRate = 0;
+                            int submissionCount = 0;
+                            foreach (DataRow row in dt.Rows)
                             {
-                                var colIndex = dt.Columns.IndexOf(dateColumn) + 1;
-                                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy";
+                                if (row["Submission_Rate_Pct"] != DBNull.Value)
+                                {
+                                    totalSubmissionRate += Convert.ToDouble(row["Submission_Rate_Pct"]);
+                                    submissionCount++;
+                                }
                             }
-
-                            var ratingColumn = dt.Columns["Avg_Feedback_Rating"];
-                            if (ratingColumn != null)
-                            {
-                                var colIndex = dt.Columns.IndexOf(ratingColumn) + 1;
-                                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
-                            }
-
-                            // Auto-fit columns
-                            worksheet.Columns().AdjustToContents();
+                            summarySheet.Cell("A6").Value = submissionCount > 0 ? totalSubmissionRate / submissionCount : 0;
+                            summarySheet.Cell("A6").Style.NumberFormat.Format = "0.00%";
 
                             // Save the file
-                            workbook.SaveAs(saveFileDialog.FileName);
+                            workbook.Save();
                         }
 
                         MessageBox.Show("Dashboard exported successfully!", "Success",
@@ -339,7 +247,6 @@ namespace OnlearnEducation
             {
                 MessageBox.Show($"Error exporting to Excel: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    
             }
         }
 

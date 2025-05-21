@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using MySql.Data.MySqlClient;
 using ClosedXML.Excel;
+using System.IO;
 
 namespace OnlearnEducation
 {
@@ -325,30 +326,48 @@ namespace OnlearnEducation
 
                     if (saveFileDialog.ShowDialog() == DialogResult.OK)
                     {
-                        using (XLWorkbook workbook = new XLWorkbook())
+                        // Get the template file path
+                        string templatePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Templates", "AdminDashboard_Template.xlsx");
+                        
+                        if (!File.Exists(templatePath))
                         {
-                            // System Overview Tab
-                            var systemSheet = workbook.Worksheets.Add("System Overview");
-                            ExportDataTableToWorksheet(systemSheet, (DataTable)systemOverviewGridView.DataSource);
-                            FormatSystemOverviewWorksheet(systemSheet);
+                            MessageBox.Show($"Template file not found at: {templatePath}\nPlease ensure AdminDashboard_Template.xlsx exists in the Templates folder.", 
+                                "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            return;
+                        }
 
-                            // Course Analytics Tab
-                            var courseSheet = workbook.Worksheets.Add("Course Analytics");
-                            ExportDataTableToWorksheet(courseSheet, (DataTable)studentPerformanceGridView.DataSource);
-                            FormatCourseAnalyticsWorksheet(courseSheet);
+                        // Create a copy of the template
+                        File.Copy(templatePath, saveFileDialog.FileName, true);
 
-                            // Student Performance Tab
-                            var studentSheet = workbook.Worksheets.Add("Student Performance");
-                            ExportDataTableToWorksheet(studentSheet, (DataTable)dataGridView1.DataSource);
-                            FormatStudentPerformanceWorksheet(studentSheet);
+                        // Open the copied file
+                        using (XLWorkbook workbook = new XLWorkbook(saveFileDialog.FileName))
+                        {
+                            // System Overview
+                            var systemSheet = workbook.Worksheet("System Overview");
+                            var systemDt = (DataTable)systemOverviewGridView.DataSource;
+                            InsertDataIntoWorksheet(systemSheet, systemDt, new[] { "Avg_Feedback_Rating" }, new[] { "Ungraded_Submissions_Pct", "System_Storage_Usage_Estimate" });
 
-                            // Audit Log Tab
-                            var auditSheet = workbook.Worksheets.Add("Audit Log");
-                            ExportDataTableToWorksheet(auditSheet, (DataTable)auditLogGridView.DataSource);
-                            FormatAuditLogWorksheet(auditSheet);
+                            // Course Analytics
+                            var courseSheet = workbook.Worksheet("Course Analytics");
+                            var courseDt = (DataTable)studentPerformanceGridView.DataSource;
+                            InsertDataIntoWorksheet(courseSheet, courseDt, new[] { "Avg_Feedback_Rating" }, new[] { "Submission_Rate_Pct" });
+
+                            // Student Performance
+                            var studentSheet = workbook.Worksheet("Student Performance");
+                            var studentDt = (DataTable)dataGridView1.DataSource;
+                            InsertDataIntoWorksheet(studentSheet, studentDt, new[] { "Avg_Grade" }, new[] { "Feedback_Responsiveness" });
+
+                            // Audit Log
+                            var auditSheet = workbook.Worksheet("Audit Log");
+                            var auditDt = (DataTable)auditLogGridView.DataSource;
+                            InsertDataIntoWorksheet(auditSheet, auditDt, null, null);
+
+                            // Update summary sheet
+                            var summarySheet = workbook.Worksheet("Summary");
+                            UpdateSummarySheet(summarySheet, systemDt, courseDt, studentDt, auditDt);
 
                             // Save the file
-                            workbook.SaveAs(saveFileDialog.FileName);
+                            workbook.Save();
                         }
 
                         MessageBox.Show("Dashboard exported successfully!", "Success", 
@@ -363,190 +382,93 @@ namespace OnlearnEducation
             }
         }
 
-        private void ExportDataTableToWorksheet(IXLWorksheet worksheet, DataTable dt)
+        private void InsertDataIntoWorksheet(IXLWorksheet worksheet, DataTable dt, string[] decimalColumns, string[] percentageColumns)
         {
-            // Add title
-            worksheet.Cell(1, 1).Value = $"Admin Dashboard for {_username}";
-            worksheet.Cell(1, 1).Style.Font.Bold = true;
-            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
-            worksheet.Range(1, 1, 1, dt.Columns.Count).Merge();
-
-            // Add data
-            worksheet.Cell(3, 1).InsertTable(dt);
-
-            // Auto-fit columns
-            worksheet.Columns().AdjustToContents();
-        }
-
-        private void FormatSystemOverviewWorksheet(IXLWorksheet worksheet)
-        {
-            var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
-            dataRange.Style.NumberFormat.Format = "@"; // Text format by default
-
-            // Get the DataTable to find column indices
-            var dt = (DataTable)systemOverviewGridView.DataSource;
-
-            // Format specific columns using indices
-            var ratingColumn = dt.Columns["Avg_Feedback_Rating"];
-            if (ratingColumn != null)
+            // Insert data starting at row 8 (after headers)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
-                var colIndex = dt.Columns.IndexOf(ratingColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
-            }
-
-            var submissionsColumn = dt.Columns["Ungraded_Submissions_Pct"];
-            if (submissionsColumn != null)
-            {
-                var colIndex = dt.Columns.IndexOf(submissionsColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00%";
-            }
-
-            var storageColumn = dt.Columns["System_Storage_Usage_Estimate"];
-            if (storageColumn != null)
-            {
-                var colIndex = dt.Columns.IndexOf(storageColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00%";
-            }
-
-            // Add charts for system metrics
-            if (dt.Columns.Count > 0)
-            {
-                var chart = worksheet.Workbook.Worksheets.Add($"{worksheet.Name} Charts");
-                chart.Cell(1, 1).Value = "System Analytics";
-                chart.Cell(1, 1).Style.Font.Bold = true;
-                chart.Cell(1, 1).Style.Font.FontSize = 14;
-
-                // Prepare data for charts
-                int dataRow = 3;
-                chart.Cell(dataRow, 1).Value = "Metric";
-                chart.Cell(dataRow, 2).Value = "Value";
-                chart.Cell(dataRow, 3).Value = "Percentage";
-                chart.Range(dataRow, 1, dataRow, 3).Style.Font.Bold = true;
-
-                // Add data for charts
-                double totalValue = 0;
-                var metricValues = new List<(string Name, double Value)>();
-
-                foreach (DataColumn column in dt.Columns)
+                for (int j = 0; j < dt.Columns.Count; j++)
                 {
-                    if (column.DataType == typeof(int) || column.DataType == typeof(double) || column.DataType == typeof(decimal))
+                    var cell = worksheet.Cell(i + 8, j + 1);
+                    cell.Value = dt.Rows[i][j].ToString();
+
+                    // Apply specific formatting based on column type
+                    if (dt.Columns[j].ColumnName.Contains("Date") || dt.Columns[j].ColumnName.Contains("timestamp"))
                     {
-                        dataRow++;
-                        chart.Cell(dataRow, 1).Value = column.ColumnName;
-                        double sum = 0;
-                        int count = 0;
-                        foreach (DataRow row in dt.Rows)
-                        {
-                            if (row[column] != DBNull.Value)
-                            {
-                                sum += Convert.ToDouble(row[column]);
-                                count++;
-                            }
-                        }
-                        double avgValue = count > 0 ? sum / count : 0;
-                        chart.Cell(dataRow, 2).Value = avgValue;
-                        metricValues.Add((column.ColumnName, avgValue));
-                        totalValue += avgValue;
+                        cell.Style.NumberFormat.Format = "mm/dd/yyyy hh:mm:ss";
+                    }
+                    else if (decimalColumns != null && decimalColumns.Contains(dt.Columns[j].ColumnName))
+                    {
+                        cell.Style.NumberFormat.Format = "0.00";
+                    }
+                    else if (percentageColumns != null && percentageColumns.Contains(dt.Columns[j].ColumnName))
+                    {
+                        cell.Style.NumberFormat.Format = "0.00%";
                     }
                 }
+            }
+        }
 
-                // Calculate and add percentages
-                dataRow = 3;
-                foreach (var metric in metricValues)
+        private void UpdateSummarySheet(IXLWorksheet summarySheet, DataTable systemDt, DataTable courseDt, DataTable studentDt, DataTable auditDt)
+        {
+            // System Overview metrics
+            summarySheet.Cell("A3").Value = "Total Active Users";
+            summarySheet.Cell("B3").Value = Convert.ToInt32(systemDt.Rows[0]["Total_Active_Users"]);
+            
+            summarySheet.Cell("A4").Value = "New Enrollments This Week";
+            summarySheet.Cell("B4").Value = Convert.ToInt32(systemDt.Rows[0]["New_Enrollments_This_Week"]);
+            
+            summarySheet.Cell("A5").Value = "Average Feedback Rating";
+            summarySheet.Cell("B5").Value = Convert.ToDouble(systemDt.Rows[0]["Avg_Feedback_Rating"]);
+            summarySheet.Cell("B5").Style.NumberFormat.Format = "0.00";
+            
+            summarySheet.Cell("A6").Value = "Ungraded Submissions";
+            summarySheet.Cell("B6").Value = Convert.ToDouble(systemDt.Rows[0]["Ungraded_Submissions_Pct"]);
+            summarySheet.Cell("B6").Style.NumberFormat.Format = "0.00%";
+
+            // Course Analytics summary
+            summarySheet.Cell("D3").Value = "Total Courses";
+            summarySheet.Cell("E3").Value = courseDt.Rows.Count;
+            
+            summarySheet.Cell("D4").Value = "Average Enrollment";
+            double totalEnrollment = 0;
+            foreach (DataRow row in courseDt.Rows)
+            {
+                if (row["Enrolled_Students"] != DBNull.Value)
                 {
-                    dataRow++;
-                    double percentage = totalValue > 0 ? (metric.Value / totalValue) * 100 : 0;
-                    chart.Cell(dataRow, 3).Value = percentage;
-                    chart.Cell(dataRow, 3).Style.NumberFormat.Format = "0.00%";
+                    totalEnrollment += Convert.ToDouble(row["Enrolled_Students"]);
                 }
-
-                // Add instructions for creating charts
-                dataRow += 2;
-                chart.Cell(dataRow, 1).Value = "To create charts in Excel:";
-                chart.Cell(dataRow, 1).Style.Font.Bold = true;
-                dataRow++;
-                chart.Cell(dataRow, 1).Value = "1. Select the data range (A3:C" + (dataRow - 2) + ")";
-                dataRow++;
-                chart.Cell(dataRow, 1).Value = "2. Go to Insert > Charts";
-                dataRow++;
-                chart.Cell(dataRow, 1).Value = "3. Choose Bar Chart for Value distribution";
-                dataRow++;
-                chart.Cell(dataRow, 1).Value = "4. Choose Pie Chart for Percentage distribution";
-
-                // Auto-fit columns
-                chart.Columns().AdjustToContents();
             }
-        }
+            summarySheet.Cell("E4").Value = courseDt.Rows.Count > 0 ? totalEnrollment / courseDt.Rows.Count : 0;
+            summarySheet.Cell("E4").Style.NumberFormat.Format = "0.00";
 
-        private void FormatCourseAnalyticsWorksheet(IXLWorksheet worksheet)
-        {
-            var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
-            dataRange.Style.NumberFormat.Format = "@"; // Text format by default
-
-            // Get the DataTable to find column indices
-            var dt = (DataTable)studentPerformanceGridView.DataSource;
-
-            // Format specific columns using indices
-            var dateColumn = dt.Columns["Next_Assignment_Due"];
-            if (dateColumn != null)
+            // Student Performance metrics
+            summarySheet.Cell("G3").Value = "Total Students";
+            summarySheet.Cell("H3").Value = studentDt.Rows.Count;
+            
+            summarySheet.Cell("G4").Value = "Average Grade";
+            double totalGrade = 0;
+            int gradeCount = 0;
+            foreach (DataRow row in studentDt.Rows)
             {
-                var colIndex = dt.Columns.IndexOf(dateColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy";
+                if (row["Avg_Grade"] != DBNull.Value)
+                {
+                    totalGrade += Convert.ToDouble(row["Avg_Grade"]);
+                    gradeCount++;
+                }
             }
+            summarySheet.Cell("H4").Value = gradeCount > 0 ? totalGrade / gradeCount : 0;
+            summarySheet.Cell("H4").Style.NumberFormat.Format = "0.00";
 
-            var ratingColumn = dt.Columns["Avg_Feedback_Rating"];
-            if (ratingColumn != null)
+            // Audit Log statistics
+            summarySheet.Cell("J3").Value = "Total Log Entries";
+            summarySheet.Cell("K3").Value = auditDt.Rows.Count;
+            
+            summarySheet.Cell("J4").Value = "Most Recent Entry";
+            if (auditDt.Rows.Count > 0)
             {
-                var colIndex = dt.Columns.IndexOf(ratingColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
-            }
-        }
-
-        private void FormatStudentPerformanceWorksheet(IXLWorksheet worksheet)
-        {
-            var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
-            dataRange.Style.NumberFormat.Format = "@"; // Text format by default
-
-            // Get the DataTable to find column indices
-            var dt = (DataTable)dataGridView1.DataSource;
-
-            // Format specific columns using indices
-            var dateColumn = dt.Columns["Last_Active_Date"];
-            if (dateColumn != null)
-            {
-                var colIndex = dt.Columns.IndexOf(dateColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy";
-            }
-
-            var gradeColumn = dt.Columns["Avg_Grade"];
-            if (gradeColumn != null)
-            {
-                var colIndex = dt.Columns.IndexOf(gradeColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
-            }
-
-            var responsivenessColumn = dt.Columns["Feedback_Responsiveness"];
-            if (responsivenessColumn != null)
-            {
-                var colIndex = dt.Columns.IndexOf(responsivenessColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
-            }
-        }
-
-        private void FormatAuditLogWorksheet(IXLWorksheet worksheet)
-        {
-            var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
-            dataRange.Style.NumberFormat.Format = "@"; // Text format by default
-
-            // Get the DataTable to find column indices
-            var dt = (DataTable)auditLogGridView.DataSource;
-
-            // Format timestamp column
-            var timestampColumn = dt.Columns["timestamp"];
-            if (timestampColumn != null)
-            {
-                var colIndex = dt.Columns.IndexOf(timestampColumn) + 1;
-                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy hh:mm:ss";
+                summarySheet.Cell("K4").Value = Convert.ToDateTime(auditDt.Rows[0]["timestamp"]);
+                summarySheet.Cell("K4").Style.NumberFormat.Format = "mm/dd/yyyy hh:mm:ss";
             }
         }
     }

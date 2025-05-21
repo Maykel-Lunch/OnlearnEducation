@@ -1,0 +1,38 @@
+// Create a new Excel workbook with the following structure:
+// Sheet "System Overview":
+// - Headers in row 7: New_Enrollments_This_Week, Total_Active_Users, Courses_Without_Assignments, Avg_Feedback_Rating, Ungraded_Submissions_Pct, Recent_Audit_Entry, Inactive_Instructors, High_Enrollment_Courses, Password_Reset_Requests, System_Storage_Usage_Estimate
+// - Data starts from row 8
+// - AutoFilter enabled on row 7
+// - Table formatting applied to A7:J1000
+
+// Sheet "Course Analytics":
+// - Headers in row 7: CourseID, CourseName, Enrolled_Students, Active_Assignments, Ungraded_Submissions, Avg_Feedback_Rating, Recent_Feedback, Next_Assignment_Due, Quiz_Count, Course_Description, Submission_Rate_Pct
+// - Data starts from row 8
+// - AutoFilter enabled on row 7
+// - Table formatting applied to A7:K1000
+
+// Sheet "Student Performance":
+// - Headers in row 7: UserID, Student_Name, Courses_Taken, Avg_Grade, Assignments_Missed, Feedback_Responsiveness, Total_Quiz_Questions, Best_Performing_Course, Last_Active_Date, Alert_Status
+// - Data starts from row 8
+// - AutoFilter enabled on row 7
+// - Table formatting applied to A7:J1000
+
+// Sheet "Audit Log":
+// - Headers in row 7: log_id, action, table_name, record_id, timestamp
+// - Data starts from row 8
+// - AutoFilter enabled on row 7
+// - Table formatting applied to A7:E1000
+
+// Sheet "Charts":
+// - System metrics bar chart (A1:F20)
+// - Course analytics pie chart (H1:M20)
+// - Student performance bar chart (A22:F42)
+// - Audit log trend line chart (H22:M42)
+// - All charts reference data from respective sheets
+
+// Sheet "Summary":
+// - System overview metrics (A3:B12)
+// - Course analytics summary (D3:E8)
+// - Student performance metrics (G3:H8)
+// - Audit log statistics (J3:K6)
+// - All cells formatted with appropriate number formats

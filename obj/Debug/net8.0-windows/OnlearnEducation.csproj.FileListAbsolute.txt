@@ -92,3 +92,17 @@ C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-w
 C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\obj\Debug\net8.0-windows\OnlearnEducation.Adminboard.resources
 C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\obj\Debug\net8.0-windows\OnlearnEducation.Studentboard.resources
 C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\obj\Debug\net8.0-windows\OnlearnEducation.Instructorboard.resources
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Templates\AdminDashboard_Template.xlsx
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Templates\InstructorDashboard_Template.xlsx
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Templates\StudentDashboard_Template.xlsx
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\EPPlus.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\EPPlus.Interfaces.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\EPPlus.System.Drawing.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.FileExtensions.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.Configuration.Json.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Abstractions.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.FileProviders.Physical.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.Extensions.FileSystemGlobbing.dll
+C:\Users\aDMin\source\repos\OnlearnEducation\OnlearnEducation\bin\Debug\net8.0-windows\Microsoft.IO.RecyclableMemoryStream.dll

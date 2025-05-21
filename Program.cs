@@ -1,3 +1,6 @@
+using System;
+using System.Windows.Forms;
+
 namespace OnlearnEducation
 {
     internal static class Program
@@ -10,8 +13,21 @@ namespace OnlearnEducation
         {
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Application.Run(new Login());
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            // Create templates if they don't exist
+            try
+            {
+                TemplateCreator.CreateTemplates();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error creating templates: {ex.Message}", "Warning",
+                    MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+            Application.Run(new OnLearnLoginForm());
         }
     }
 }

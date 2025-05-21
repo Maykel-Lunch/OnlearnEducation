@@ -34,8 +34,8 @@ namespace OnlearnEducation
 
             // Load data when form loads
             this.Load += (s, e) =>
-            {
-                LoadEnrollmentData();
+        {
+            LoadEnrollmentData();
                 LoadUserType();
             };
         }
@@ -44,20 +44,20 @@ namespace OnlearnEducation
         {
             try
             {
-                tableLayoutPanel1.Controls.Clear();
+            tableLayoutPanel1.Controls.Clear();
                 tableLayoutPanel1.ColumnStyles.Clear();
-                tableLayoutPanel1.RowStyles.Clear();
+            tableLayoutPanel1.RowStyles.Clear();
 
-                tableLayoutPanel1.ColumnCount = 3;
+            tableLayoutPanel1.ColumnCount = 3;
                 tableLayoutPanel1.RowCount = 1;
 
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
-                tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40f));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
+            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30f));
 
-                AddHeaderLabel("Course Name", 0, 0);
-                AddHeaderLabel("Instructor", 1, 0);
-                AddHeaderLabel("Enrollment Date", 2, 0);
+            AddHeaderLabel("Course Name", 0, 0);
+            AddHeaderLabel("Instructor", 1, 0);
+            AddHeaderLabel("Enrollment Date", 2, 0);
 
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
@@ -104,7 +104,7 @@ namespace OnlearnEducation
                                     AddDataLabel(instructorName, 1, rowIndex);
                                     AddDataLabel(enrollmentDate, 2, rowIndex);
 
-                                    rowIndex++;
+                                rowIndex++;
                                 }
                             }
                         }
