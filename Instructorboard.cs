@@ -216,49 +216,89 @@ namespace OnlearnEducation
                             // Add a chart for enrollment distribution
                             if (dt.Columns.Contains("Enrolled_Students"))
                             {
-                                var chart = worksheet.Workbook.Worksheets.Add("Enrollment Chart");
-                                chart.Cell(1, 1).Value = "Course Enrollment Distribution";
+                                var chart = worksheet.Workbook.Worksheets.Add($"{worksheet.Name} Charts");
+                                chart.Cell(1, 1).Value = "Course Analytics";
                                 chart.Cell(1, 1).Style.Font.Bold = true;
                                 chart.Cell(1, 1).Style.Font.FontSize = 14;
 
-                                // Create a summary table
-                                int summaryRow = 3;
-                                chart.Cell(summaryRow, 1).Value = "Enrollment Statistics";
-                                chart.Cell(summaryRow, 1).Style.Font.Bold = true;
+                                // Prepare data for charts
+                                int dataRow = 3;
+                                chart.Cell(dataRow, 1).Value = "Course";
+                                chart.Cell(dataRow, 2).Value = "Enrolled Students";
+                                chart.Cell(dataRow, 3).Value = "Feedback Rating";
+                                chart.Cell(dataRow, 4).Value = "Enrollment %";
+                                chart.Range(dataRow, 1, dataRow, 4).Style.Font.Bold = true;
 
+                                // Add data for charts
                                 double totalStudents = 0;
-                                double minStudents = double.MaxValue;
-                                double maxStudents = double.MinValue;
-                                int courseCount = dt.Rows.Count;
+                                double totalRating = 0;
+                                int ratingCount = 0;
 
                                 foreach (DataRow row in dt.Rows)
                                 {
                                     if (row["Enrolled_Students"] != DBNull.Value)
                                     {
+                                        dataRow++;
                                         double students = Convert.ToDouble(row["Enrolled_Students"]);
                                         totalStudents += students;
-                                        minStudents = Math.Min(minStudents, students);
-                                        maxStudents = Math.Max(maxStudents, students);
+                                        
+                                        chart.Cell(dataRow, 1).Value = row["CourseName"].ToString();
+                                        chart.Cell(dataRow, 2).Value = students;
+                                        
+                                        if (row["Avg_Feedback_Rating"] != DBNull.Value)
+                                        {
+                                            double rating = Convert.ToDouble(row["Avg_Feedback_Rating"]);
+                                            chart.Cell(dataRow, 3).Value = rating;
+                                            totalRating += rating;
+                                            ratingCount++;
+                                        }
                                     }
                                 }
 
-                                if (courseCount > 0)
+                                // Calculate and add percentages
+                                dataRow = 3;
+                                foreach (DataRow row in dt.Rows)
                                 {
-                                    double avgStudents = totalStudents / courseCount;
-                                    chart.Cell(summaryRow + 1, 1).Value = "Total Students:";
-                                    chart.Cell(summaryRow + 1, 2).Value = totalStudents;
-                                    chart.Cell(summaryRow + 2, 1).Value = "Average Students per Course:";
-                                    chart.Cell(summaryRow + 2, 2).Value = avgStudents;
-                                    chart.Cell(summaryRow + 3, 1).Value = "Minimum Enrollment:";
-                                    chart.Cell(summaryRow + 3, 2).Value = minStudents;
-                                    chart.Cell(summaryRow + 4, 1).Value = "Maximum Enrollment:";
-                                    chart.Cell(summaryRow + 4, 2).Value = maxStudents;
-                                    chart.Cell(summaryRow + 5, 1).Value = "Total Courses:";
-                                    chart.Cell(summaryRow + 5, 2).Value = courseCount;
-
-                                    // Format numeric cells
-                                    chart.Range(summaryRow + 1, 2, summaryRow + 4, 2).Style.NumberFormat.Format = "0.00";
+                                    if (row["Enrolled_Students"] != DBNull.Value)
+                                    {
+                                        dataRow++;
+                                        double students = Convert.ToDouble(row["Enrolled_Students"]);
+                                        double percentage = totalStudents > 0 ? (students / totalStudents) * 100 : 0;
+                                        chart.Cell(dataRow, 4).Value = percentage;
+                                        chart.Cell(dataRow, 4).Style.NumberFormat.Format = "0.00%";
+                                    }
                                 }
+
+                                // Add summary statistics
+                                dataRow += 2;
+                                chart.Cell(dataRow, 1).Value = "Summary Statistics";
+                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "Total Students:";
+                                chart.Cell(dataRow, 2).Value = totalStudents;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "Average Students per Course:";
+                                chart.Cell(dataRow, 2).Value = totalStudents / dt.Rows.Count;
+                                dataRow++;
+                                if (ratingCount > 0)
+                                {
+                                    chart.Cell(dataRow, 1).Value = "Average Feedback Rating:";
+                                    chart.Cell(dataRow, 2).Value = totalRating / ratingCount;
+                                    chart.Cell(dataRow, 2).Style.NumberFormat.Format = "0.00";
+                                }
+
+                                // Add instructions for creating charts
+                                dataRow += 2;
+                                chart.Cell(dataRow, 1).Value = "To create charts in Excel:";
+                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "1. Select the data range (A3:D" + (dataRow - 2) + ")";
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "2. Go to Insert > Charts";
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "3. Choose Bar Chart for Enrollment distribution";
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "4. Choose Pie Chart for Course distribution";
 
                                 // Auto-fit columns
                                 chart.Columns().AdjustToContents();
@@ -299,6 +339,7 @@ namespace OnlearnEducation
             {
                 MessageBox.Show($"Error exporting to Excel: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    
             }
         }
 

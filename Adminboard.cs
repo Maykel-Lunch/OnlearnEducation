@@ -407,6 +407,75 @@ namespace OnlearnEducation
                 var colIndex = dt.Columns.IndexOf(storageColumn) + 1;
                 worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00%";
             }
+
+            // Add charts for system metrics
+            if (dt.Columns.Count > 0)
+            {
+                var chart = worksheet.Workbook.Worksheets.Add($"{worksheet.Name} Charts");
+                chart.Cell(1, 1).Value = "System Analytics";
+                chart.Cell(1, 1).Style.Font.Bold = true;
+                chart.Cell(1, 1).Style.Font.FontSize = 14;
+
+                // Prepare data for charts
+                int dataRow = 3;
+                chart.Cell(dataRow, 1).Value = "Metric";
+                chart.Cell(dataRow, 2).Value = "Value";
+                chart.Cell(dataRow, 3).Value = "Percentage";
+                chart.Range(dataRow, 1, dataRow, 3).Style.Font.Bold = true;
+
+                // Add data for charts
+                double totalValue = 0;
+                var metricValues = new List<(string Name, double Value)>();
+
+                foreach (DataColumn column in dt.Columns)
+                {
+                    if (column.DataType == typeof(int) || column.DataType == typeof(double) || column.DataType == typeof(decimal))
+                    {
+                        dataRow++;
+                        chart.Cell(dataRow, 1).Value = column.ColumnName;
+                        double sum = 0;
+                        int count = 0;
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            if (row[column] != DBNull.Value)
+                            {
+                                sum += Convert.ToDouble(row[column]);
+                                count++;
+                            }
+                        }
+                        double avgValue = count > 0 ? sum / count : 0;
+                        chart.Cell(dataRow, 2).Value = avgValue;
+                        metricValues.Add((column.ColumnName, avgValue));
+                        totalValue += avgValue;
+                    }
+                }
+
+                // Calculate and add percentages
+                dataRow = 3;
+                foreach (var metric in metricValues)
+                {
+                    dataRow++;
+                    double percentage = totalValue > 0 ? (metric.Value / totalValue) * 100 : 0;
+                    chart.Cell(dataRow, 3).Value = percentage;
+                    chart.Cell(dataRow, 3).Style.NumberFormat.Format = "0.00%";
+                }
+
+                // Add instructions for creating charts
+                dataRow += 2;
+                chart.Cell(dataRow, 1).Value = "To create charts in Excel:";
+                chart.Cell(dataRow, 1).Style.Font.Bold = true;
+                dataRow++;
+                chart.Cell(dataRow, 1).Value = "1. Select the data range (A3:C" + (dataRow - 2) + ")";
+                dataRow++;
+                chart.Cell(dataRow, 1).Value = "2. Go to Insert > Charts";
+                dataRow++;
+                chart.Cell(dataRow, 1).Value = "3. Choose Bar Chart for Value distribution";
+                dataRow++;
+                chart.Cell(dataRow, 1).Value = "4. Choose Pie Chart for Percentage distribution";
+
+                // Auto-fit columns
+                chart.Columns().AdjustToContents();
+            }
         }
 
         private void FormatCourseAnalyticsWorksheet(IXLWorksheet worksheet)

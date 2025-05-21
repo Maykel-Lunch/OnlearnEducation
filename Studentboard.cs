@@ -163,6 +163,77 @@ namespace OnlearnEducation
                             // Auto-fit columns
                             worksheet.Columns().AdjustToContents();
 
+                            // Add a chart for grades
+                            if (dt.Columns.Contains("RecentGrade"))
+                            {
+                                var chart = worksheet.Workbook.Worksheets.Add($"{worksheet.Name} Charts");
+                                chart.Cell(1, 1).Value = "Grade Analysis";
+                                chart.Cell(1, 1).Style.Font.Bold = true;
+                                chart.Cell(1, 1).Style.Font.FontSize = 14;
+
+                                // Prepare data for charts
+                                int dataRow = 3;
+                                chart.Cell(dataRow, 1).Value = "Course";
+                                chart.Cell(dataRow, 2).Value = "Grade";
+                                chart.Cell(dataRow, 3).Value = "Status";
+                                chart.Cell(dataRow, 4).Value = "Percentage";
+                                chart.Range(dataRow, 1, dataRow, 4).Style.Font.Bold = true;
+
+                                // Add data for charts
+                                double totalGrade = 0;
+                                int passCount = 0;
+                                int failCount = 0;
+
+                                foreach (DataRow row in dt.Rows)
+                                {
+                                    if (row["RecentGrade"] != DBNull.Value)
+                                    {
+                                        dataRow++;
+                                        double grade = Convert.ToDouble(row["RecentGrade"]);
+                                        string status = grade >= 60 ? "Passed" : "Failed";
+                                        
+                                        chart.Cell(dataRow, 1).Value = row["CourseName"].ToString();
+                                        chart.Cell(dataRow, 2).Value = grade;
+                                        chart.Cell(dataRow, 3).Value = status;
+                                        
+                                        totalGrade += grade;
+                                        if (status == "Passed") passCount++;
+                                        else failCount++;
+                                    }
+                                }
+
+                                // Add summary statistics
+                                dataRow += 2;
+                                chart.Cell(dataRow, 1).Value = "Summary Statistics";
+                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "Total Courses:";
+                                chart.Cell(dataRow, 2).Value = dt.Rows.Count;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "Average Grade:";
+                                chart.Cell(dataRow, 2).Value = totalGrade / dt.Rows.Count;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "Pass Rate:";
+                                chart.Cell(dataRow, 2).Value = (double)passCount / dt.Rows.Count;
+                                chart.Cell(dataRow, 2).Style.NumberFormat.Format = "0.00%";
+
+                                // Add instructions for creating charts
+                                dataRow += 2;
+                                chart.Cell(dataRow, 1).Value = "To create charts in Excel:";
+                                chart.Cell(dataRow, 1).Style.Font.Bold = true;
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "1. Select the data range (A3:D" + (dataRow - 2) + ")";
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "2. Go to Insert > Charts";
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "3. Choose Bar Chart for Grade distribution";
+                                dataRow++;
+                                chart.Cell(dataRow, 1).Value = "4. Choose Pie Chart for Pass/Fail distribution";
+
+                                // Auto-fit columns
+                                chart.Columns().AdjustToContents();
+                            }
+
                             // Save the file
                             workbook.SaveAs(saveFileDialog.FileName);
                         }
