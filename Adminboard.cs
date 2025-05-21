@@ -18,6 +18,7 @@ namespace OnlearnEducation
         private string _username;
         private string _email;
         private static string connectionString = "server=localhost;user=root;password=;database=onlearndb;";
+        // private System.Windows.Forms.DataGridView auditLogGridView;
 
         public Adminboard(int userId, string username, string email)
         {
@@ -35,7 +36,7 @@ namespace OnlearnEducation
 
             // Add event handlers
             btnLogout.Click += btnLogout_Click_1;
-            button1.Click += button1_Click;
+            // button1.Click += button1_Click;
             btnExportExcel.Click += btnExportExcel_Click;
 
             // Load data when form loads
@@ -47,6 +48,7 @@ namespace OnlearnEducation
             LoadSystemOverview();
             LoadCourseAnalytics();
             LoadStudentPerformance();
+            LoadAuditLogs();
         }
 
         private void LoadSystemOverview()
@@ -175,6 +177,43 @@ namespace OnlearnEducation
             }
         }
 
+        private void LoadAuditLogs()
+        {
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    string query = @"SELECT 
+                        log_id,
+                        action,
+                        table_name,
+                        record_id,
+                        timestamp
+                    FROM audit_log
+                    ORDER BY timestamp DESC";
+
+                    using (MySqlCommand command = new MySqlCommand(query, connection))
+                    {
+                        connection.Open();
+                        using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
+                        {
+                            DataTable dt = new DataTable();
+                            adapter.Fill(dt);
+                            auditLogGridView.DataSource = dt;
+
+                            ConfigureGridView(auditLogGridView);
+                            FormatAuditLogColumns();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading audit logs: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private void ConfigureGridView(DataGridView grid)
         {
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
@@ -215,9 +254,6 @@ namespace OnlearnEducation
                     case "Avg_Feedback_Rating":
                         column.DefaultCellStyle.Format = "N2";
                         break;
-                    case "Submission_Rate_Pct":
-                        column.DefaultCellStyle.Format = "P2";
-                        break;
                 }
             }
         }
@@ -236,6 +272,19 @@ namespace OnlearnEducation
                         break;
                     case "Feedback_Responsiveness":
                         column.DefaultCellStyle.Format = "P2";
+                        break;
+                }
+            }
+        }
+
+        private void FormatAuditLogColumns()
+        {
+            foreach (DataGridViewColumn column in auditLogGridView.Columns)
+            {
+                switch (column.Name)
+                {
+                    case "timestamp":
+                        column.DefaultCellStyle.Format = "MM/dd/yyyy HH:mm:ss";
                         break;
                 }
             }
@@ -293,6 +342,11 @@ namespace OnlearnEducation
                             ExportDataTableToWorksheet(studentSheet, (DataTable)dataGridView1.DataSource);
                             FormatStudentPerformanceWorksheet(studentSheet);
 
+                            // Audit Log Tab
+                            var auditSheet = workbook.Worksheets.Add("Audit Log");
+                            ExportDataTableToWorksheet(auditSheet, (DataTable)auditLogGridView.DataSource);
+                            FormatAuditLogWorksheet(auditSheet);
+
                             // Save the file
                             workbook.SaveAs(saveFileDialog.FileName);
                         }
@@ -329,18 +383,30 @@ namespace OnlearnEducation
             var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
             dataRange.Style.NumberFormat.Format = "@"; // Text format by default
 
-            // Format specific columns
-            var ratingColumn = worksheet.Column("Avg_Feedback_Rating");
+            // Get the DataTable to find column indices
+            var dt = (DataTable)systemOverviewGridView.DataSource;
+
+            // Format specific columns using indices
+            var ratingColumn = dt.Columns["Avg_Feedback_Rating"];
             if (ratingColumn != null)
-                ratingColumn.Style.NumberFormat.Format = "0.00";
+            {
+                var colIndex = dt.Columns.IndexOf(ratingColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
+            }
 
-            var submissionsColumn = worksheet.Column("Ungraded_Submissions_Pct");
+            var submissionsColumn = dt.Columns["Ungraded_Submissions_Pct"];
             if (submissionsColumn != null)
-                submissionsColumn.Style.NumberFormat.Format = "0.00%";
+            {
+                var colIndex = dt.Columns.IndexOf(submissionsColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00%";
+            }
 
-            var storageColumn = worksheet.Column("System_Storage_Usage_Estimate");
+            var storageColumn = dt.Columns["System_Storage_Usage_Estimate"];
             if (storageColumn != null)
-                storageColumn.Style.NumberFormat.Format = "0.00%";
+            {
+                var colIndex = dt.Columns.IndexOf(storageColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00%";
+            }
         }
 
         private void FormatCourseAnalyticsWorksheet(IXLWorksheet worksheet)
@@ -348,18 +414,23 @@ namespace OnlearnEducation
             var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
             dataRange.Style.NumberFormat.Format = "@"; // Text format by default
 
-            // Format specific columns
-            var dateColumn = worksheet.Column("Next_Assignment_Due");
+            // Get the DataTable to find column indices
+            var dt = (DataTable)studentPerformanceGridView.DataSource;
+
+            // Format specific columns using indices
+            var dateColumn = dt.Columns["Next_Assignment_Due"];
             if (dateColumn != null)
-                dateColumn.Style.NumberFormat.Format = "mm/dd/yyyy";
+            {
+                var colIndex = dt.Columns.IndexOf(dateColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy";
+            }
 
-            var ratingColumn = worksheet.Column("Avg_Feedback_Rating");
+            var ratingColumn = dt.Columns["Avg_Feedback_Rating"];
             if (ratingColumn != null)
-                ratingColumn.Style.NumberFormat.Format = "0.00";
-
-            var submissionColumn = worksheet.Column("Submission_Rate_Pct");
-            if (submissionColumn != null)
-                submissionColumn.Style.NumberFormat.Format = "0.00%";
+            {
+                var colIndex = dt.Columns.IndexOf(ratingColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
+            }
         }
 
         private void FormatStudentPerformanceWorksheet(IXLWorksheet worksheet)
@@ -367,18 +438,47 @@ namespace OnlearnEducation
             var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
             dataRange.Style.NumberFormat.Format = "@"; // Text format by default
 
-            // Format specific columns
-            var dateColumn = worksheet.Column("Last_Active_Date");
+            // Get the DataTable to find column indices
+            var dt = (DataTable)dataGridView1.DataSource;
+
+            // Format specific columns using indices
+            var dateColumn = dt.Columns["Last_Active_Date"];
             if (dateColumn != null)
-                dateColumn.Style.NumberFormat.Format = "mm/dd/yyyy";
+            {
+                var colIndex = dt.Columns.IndexOf(dateColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy";
+            }
 
-            var gradeColumn = worksheet.Column("Avg_Grade");
+            var gradeColumn = dt.Columns["Avg_Grade"];
             if (gradeColumn != null)
-                gradeColumn.Style.NumberFormat.Format = "0.00";
+            {
+                var colIndex = dt.Columns.IndexOf(gradeColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
+            }
 
-            var responsivenessColumn = worksheet.Column("Feedback_Responsiveness");
+            var responsivenessColumn = dt.Columns["Feedback_Responsiveness"];
             if (responsivenessColumn != null)
-                responsivenessColumn.Style.NumberFormat.Format = "0.00%";
+            {
+                var colIndex = dt.Columns.IndexOf(responsivenessColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
+            }
+        }
+
+        private void FormatAuditLogWorksheet(IXLWorksheet worksheet)
+        {
+            var dataRange = worksheet.Range(3, 1, worksheet.LastRowUsed().RowNumber(), worksheet.LastColumnUsed().ColumnNumber());
+            dataRange.Style.NumberFormat.Format = "@"; // Text format by default
+
+            // Get the DataTable to find column indices
+            var dt = (DataTable)auditLogGridView.DataSource;
+
+            // Format timestamp column
+            var timestampColumn = dt.Columns["timestamp"];
+            if (timestampColumn != null)
+            {
+                var colIndex = dt.Columns.IndexOf(timestampColumn) + 1;
+                worksheet.Column(colIndex).Style.NumberFormat.Format = "mm/dd/yyyy hh:mm:ss";
+            }
         }
     }
 }

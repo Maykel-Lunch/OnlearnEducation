@@ -25,18 +25,19 @@ namespace OnlearnEducation
             _userId = userId;
             _username = username;
             _email = email;
-            
+
             // Set window title with instructor name
             this.Text = $"Instructor Dashboard - {username}";
-            
+
             // Set labels
             label2.Text = username;
             label3.Text = email;
 
             // Add event handlers
             btnLogout.Click += btnLogout_Click_1;
-            button1.Click += button1_Click;
+            // button1.Click += button1_Click;
             btnExportExcel.Click += btnExportExcel_Click;
+            btnAddStudent.Click += btnAddStudent_Click;
 
             // Load instructor data when form loads
             this.Load += (s, e) => LoadInstructorData();
@@ -98,9 +99,6 @@ namespace OnlearnEducation
                                     case "Avg_Feedback_Rating":
                                         column.DefaultCellStyle.Format = "N2";
                                         break;
-                                    case "Submission_Rate_Pct":
-                                        column.DefaultCellStyle.Format = "P2";
-                                        break;
                                 }
                             }
                         }
@@ -121,7 +119,7 @@ namespace OnlearnEducation
                 // Show the login form
                 OnLearnLoginForm loginForm = new OnLearnLoginForm();
                 loginForm.Show();
-                
+
                 // Close the current form
                 this.Close();
             }
@@ -156,7 +154,7 @@ namespace OnlearnEducation
                         using (XLWorkbook workbook = new XLWorkbook())
                         {
                             var worksheet = workbook.Worksheets.Add("Instructor Dashboard");
-                            
+
                             // Add title
                             worksheet.Cell(1, 1).Value = $"Instructor Dashboard for {_username}";
                             worksheet.Cell(1, 1).Style.Font.Bold = true;
@@ -185,13 +183,6 @@ namespace OnlearnEducation
                                 worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00";
                             }
 
-                            var submissionColumn = dt.Columns["Submission_Rate_Pct"];
-                            if (submissionColumn != null)
-                            {
-                                var colIndex = dt.Columns.IndexOf(submissionColumn) + 1;
-                                worksheet.Column(colIndex).Style.NumberFormat.Format = "0.00%";
-                            }
-
                             // Auto-fit columns
                             worksheet.Columns().AdjustToContents();
 
@@ -199,7 +190,7 @@ namespace OnlearnEducation
                             workbook.SaveAs(saveFileDialog.FileName);
                         }
 
-                        MessageBox.Show("Dashboard exported successfully!", "Success", 
+                        MessageBox.Show("Dashboard exported successfully!", "Success",
                             MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
@@ -207,6 +198,26 @@ namespace OnlearnEducation
             catch (Exception ex)
             {
                 MessageBox.Show($"Error exporting to Excel: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnAddStudent_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                using (EnrollStudentForm enrollForm = new EnrollStudentForm(_userId))
+                {
+                    if (enrollForm.ShowDialog() == DialogResult.OK)
+                    {
+                        // Refresh the instructor data to show updated enrollment
+                        LoadInstructorData();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error opening enrollment form: {ex.Message}", "Error",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

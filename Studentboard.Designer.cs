@@ -31,7 +31,6 @@
             DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
             panel1 = new Panel();
             btnLogout = new Button();
-            button1 = new Button();
             btnExportExcel = new Button();
             label3 = new Label();
             label2 = new Label();
@@ -43,7 +42,6 @@
             // panel1
             // 
             panel1.Controls.Add(btnLogout);
-            panel1.Controls.Add(button1);
             panel1.Controls.Add(btnExportExcel);
             panel1.Controls.Add(label3);
             panel1.Controls.Add(label2);
@@ -59,7 +57,7 @@
             btnLogout.Font = new Font("Segoe UI Black", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnLogout.ForeColor = SystemColors.ControlLightLight;
             btnLogout.ImageKey = "(none)";
-            btnLogout.Location = new Point(736, 3);
+            btnLogout.Location = new Point(726, 27);
             btnLogout.Name = "btnLogout";
             btnLogout.Size = new Size(112, 34);
             btnLogout.TabIndex = 10;
@@ -67,20 +65,10 @@
             btnLogout.UseVisualStyleBackColor = false;
             btnLogout.Click += btnLogout_Click_1;
             // 
-            // button1
-            // 
-            button1.Font = new Font("Segoe UI", 8F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            button1.Location = new Point(639, 43);
-            button1.Name = "button1";
-            button1.Size = new Size(209, 31);
-            button1.TabIndex = 7;
-            button1.Text = "Change my password? ";
-            button1.UseVisualStyleBackColor = true;
-            // 
             // btnExportExcel
             // 
             btnExportExcel.Font = new Font("Segoe UI", 8F, FontStyle.Italic, GraphicsUnit.Point, 0);
-            btnExportExcel.Location = new Point(639, 79);
+            btnExportExcel.Location = new Point(639, 67);
             btnExportExcel.Name = "btnExportExcel";
             btnExportExcel.Size = new Size(209, 27);
             btnExportExcel.TabIndex = 6;
@@ -144,7 +132,6 @@
 
         private Panel panel1;
         private Button btnLogout;
-        private Button button1;
         private Button btnExportExcel;
         private Label label3;
         private Label label2;

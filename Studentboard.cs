@@ -35,7 +35,7 @@ namespace OnlearnEducation
 
             // Add event handlers
             btnLogout.Click += btnLogout_Click_1;
-            button1.Click += button1_Click;
+            // button1.Click += button1_Click;
             btnExportExcel.Click += btnExportExcel_Click;
 
             // Load student data when form loads
@@ -91,6 +91,10 @@ namespace OnlearnEducation
                                 if (column.Name.Contains("Date"))
                                 {
                                     column.DefaultCellStyle.Format = "MM/dd/yyyy";
+                                }
+                                else if (column.Name == "FeedbackRating")
+                                {
+                                    column.DefaultCellStyle.Format = "N2";
                                 }
                             }
                         }
