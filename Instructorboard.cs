@@ -161,11 +161,111 @@ namespace OnlearnEducation
                             worksheet.Cell(1, 1).Style.Font.FontSize = 14;
                             worksheet.Range(1, 1, 1, dt.Columns.Count).Merge();
 
-                            // Add data
+                            // Add data table starting at column A
                             worksheet.Cell(3, 1).InsertTable(dt);
 
-                            // Format columns
-                            var dataRange = worksheet.Range(3, 1, dt.Rows.Count + 3, dt.Columns.Count);
+                            // Add visualization starting at column M (13th column)
+                            int vizStartCol = 13; // Column M
+                            int lastRow = dt.Rows.Count + 3;
+
+                            // Add summary section
+                            worksheet.Cell(3, vizStartCol).Value = "Course Analytics Summary";
+                            worksheet.Cell(3, vizStartCol).Style.Font.Bold = true;
+                            worksheet.Cell(3, vizStartCol).Style.Font.FontSize = 12;
+
+                            // Add row count
+                            worksheet.Cell(4, vizStartCol).Value = "Total Courses:";
+                            worksheet.Cell(4, vizStartCol + 1).Value = dt.Rows.Count;
+                            worksheet.Cell(4, vizStartCol + 1).Style.Font.Bold = true;
+
+                            // Add statistics for numeric columns
+                            if (dt.Columns.Contains("Enrolled_Students"))
+                            {
+                                double totalStudents = 0;
+                                foreach (DataRow row in dt.Rows)
+                                {
+                                    if (row["Enrolled_Students"] != DBNull.Value)
+                                    {
+                                        totalStudents += Convert.ToDouble(row["Enrolled_Students"]);
+                                    }
+                                }
+                                worksheet.Cell(5, vizStartCol).Value = "Total Enrolled Students:";
+                                worksheet.Cell(5, vizStartCol + 1).Value = totalStudents;
+                            }
+
+                            if (dt.Columns.Contains("Avg_Feedback_Rating"))
+                            {
+                                double sum = 0;
+                                int count = 0;
+                                foreach (DataRow row in dt.Rows)
+                                {
+                                    if (row["Avg_Feedback_Rating"] != DBNull.Value)
+                                    {
+                                        sum += Convert.ToDouble(row["Avg_Feedback_Rating"]);
+                                        count++;
+                                    }
+                                }
+                                if (count > 0)
+                                {
+                                    worksheet.Cell(6, vizStartCol).Value = "Average Feedback Rating:";
+                                    worksheet.Cell(6, vizStartCol + 1).Value = sum / count;
+                                    worksheet.Cell(6, vizStartCol + 1).Style.NumberFormat.Format = "0.00";
+                                }
+                            }
+
+                            // Add a chart for enrollment distribution
+                            if (dt.Columns.Contains("Enrolled_Students"))
+                            {
+                                var chart = worksheet.Workbook.Worksheets.Add("Enrollment Chart");
+                                chart.Cell(1, 1).Value = "Course Enrollment Distribution";
+                                chart.Cell(1, 1).Style.Font.Bold = true;
+                                chart.Cell(1, 1).Style.Font.FontSize = 14;
+
+                                // Create a summary table
+                                int summaryRow = 3;
+                                chart.Cell(summaryRow, 1).Value = "Enrollment Statistics";
+                                chart.Cell(summaryRow, 1).Style.Font.Bold = true;
+
+                                double totalStudents = 0;
+                                double minStudents = double.MaxValue;
+                                double maxStudents = double.MinValue;
+                                int courseCount = dt.Rows.Count;
+
+                                foreach (DataRow row in dt.Rows)
+                                {
+                                    if (row["Enrolled_Students"] != DBNull.Value)
+                                    {
+                                        double students = Convert.ToDouble(row["Enrolled_Students"]);
+                                        totalStudents += students;
+                                        minStudents = Math.Min(minStudents, students);
+                                        maxStudents = Math.Max(maxStudents, students);
+                                    }
+                                }
+
+                                if (courseCount > 0)
+                                {
+                                    double avgStudents = totalStudents / courseCount;
+                                    chart.Cell(summaryRow + 1, 1).Value = "Total Students:";
+                                    chart.Cell(summaryRow + 1, 2).Value = totalStudents;
+                                    chart.Cell(summaryRow + 2, 1).Value = "Average Students per Course:";
+                                    chart.Cell(summaryRow + 2, 2).Value = avgStudents;
+                                    chart.Cell(summaryRow + 3, 1).Value = "Minimum Enrollment:";
+                                    chart.Cell(summaryRow + 3, 2).Value = minStudents;
+                                    chart.Cell(summaryRow + 4, 1).Value = "Maximum Enrollment:";
+                                    chart.Cell(summaryRow + 4, 2).Value = maxStudents;
+                                    chart.Cell(summaryRow + 5, 1).Value = "Total Courses:";
+                                    chart.Cell(summaryRow + 5, 2).Value = courseCount;
+
+                                    // Format numeric cells
+                                    chart.Range(summaryRow + 1, 2, summaryRow + 4, 2).Style.NumberFormat.Format = "0.00";
+                                }
+
+                                // Auto-fit columns
+                                chart.Columns().AdjustToContents();
+                            }
+
+                            // Format the data table
+                            var dataRange = worksheet.Range(3, 1, lastRow, dt.Columns.Count);
                             dataRange.Style.NumberFormat.Format = "@"; // Text format by default
 
                             // Format specific columns

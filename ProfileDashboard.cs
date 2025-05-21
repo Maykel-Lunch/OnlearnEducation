@@ -69,22 +69,43 @@ namespace OnlearnEducation
                         using (MySqlDataReader reader = command.ExecuteReader())
                         {
                             int rowIndex = 1;
-                            while (reader.Read())
+                            if (!reader.HasRows)
                             {
                                 tableLayoutPanel1.RowCount++;
                                 tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-                                string courseName = reader["CourseName"]?.ToString() ?? "N/A";
-                                string instructorName = reader["InstructorName"]?.ToString() ?? "N/A";
-                                string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value
-                                    ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d")
-                                    : "N/A";
+                                AddDataLabel("No courses enrolled yet", 0, rowIndex);
+                                AddDataLabel("N/A", 1, rowIndex);
+                                AddDataLabel("N/A", 2, rowIndex);
 
-                                AddDataLabel(courseName, 0, rowIndex);
-                                AddDataLabel(instructorName, 1, rowIndex);
-                                AddDataLabel(enrollmentDate, 2, rowIndex);
+                                // Style the message row
+                                var messageLabel = tableLayoutPanel1.GetControlFromPosition(0, rowIndex) as Label;
+                                if (messageLabel != null)
+                                {
+                                    messageLabel.ForeColor = Color.Gray;
+                                    messageLabel.Font = new Font(messageLabel.Font, FontStyle.Italic);
+                                    messageLabel.TextAlign = ContentAlignment.MiddleCenter;
+                                }
+                            }
+                            else
+                            {
+                                while (reader.Read())
+                                {
+                                    tableLayoutPanel1.RowCount++;
+                                    tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-                                rowIndex++;
+                                    string courseName = reader["CourseName"]?.ToString() ?? "N/A";
+                                    string instructorName = reader["InstructorName"]?.ToString() ?? "N/A";
+                                    string enrollmentDate = reader["EnrollmentDate"] != DBNull.Value
+                                        ? Convert.ToDateTime(reader["EnrollmentDate"]).ToString("d")
+                                        : "N/A";
+
+                                    AddDataLabel(courseName, 0, rowIndex);
+                                    AddDataLabel(instructorName, 1, rowIndex);
+                                    AddDataLabel(enrollmentDate, 2, rowIndex);
+
+                                    rowIndex++;
+                                }
                             }
                         }
                     }
@@ -352,14 +373,104 @@ namespace OnlearnEducation
                             worksheet.Cell(1, 1).Style.Font.FontSize = 14;
                             worksheet.Range(1, 1, 1, 3).Merge();
 
+                            // Add search and filter instructions
+                            worksheet.Cell(2, 1).Value = "Search and Filter Instructions:";
+                            worksheet.Cell(2, 1).Style.Font.Bold = true;
+                            worksheet.Cell(3, 1).Value = "1. Use the filter arrows in column headers to filter data";
+                            worksheet.Cell(4, 1).Value = "2. Use Ctrl+F to search within the worksheet";
+                            worksheet.Cell(5, 1).Value = "3. Sort by clicking column headers";
+
                             // Add headers
-                            worksheet.Cell(3, 1).Value = "Course Name";
-                            worksheet.Cell(3, 2).Value = "Instructor";
-                            worksheet.Cell(3, 3).Value = "Enrollment Date";
-                            worksheet.Range(3, 1, 3, 3).Style.Font.Bold = true;
+                            worksheet.Cell(7, 1).Value = "Course Name";
+                            worksheet.Cell(7, 2).Value = "Instructor";
+                            worksheet.Cell(7, 3).Value = "Enrollment Date";
+                            worksheet.Range(7, 1, 7, 3).Style.Font.Bold = true;
 
                             // Add data
-                            worksheet.Cell(4, 1).InsertTable(dt);
+                            worksheet.Cell(8, 1).InsertTable(dt);
+
+                            // Calculate last row and column
+                            int lastRow = dt.Rows.Count + 7;
+                            int lastCol = dt.Columns.Count;
+
+                            // Add a summary section
+                            worksheet.Cell(lastRow + 2, 1).Value = "Enrollment Summary";
+                            worksheet.Cell(lastRow + 2, 1).Style.Font.Bold = true;
+                            worksheet.Cell(lastRow + 2, 1).Style.Font.FontSize = 12;
+
+                            // Add row count
+                            worksheet.Cell(lastRow + 3, 1).Value = "Total Courses:";
+                            worksheet.Cell(lastRow + 3, 2).Value = dt.Rows.Count;
+                            worksheet.Cell(lastRow + 3, 2).Style.Font.Bold = true;
+
+                            // Add instructor count
+                            var uniqueInstructors = dt.AsEnumerable()
+                                .Select(r => r.Field<string>("Instructor"))
+                                .Distinct()
+                                .Count();
+                            worksheet.Cell(lastRow + 4, 1).Value = "Unique Instructors:";
+                            worksheet.Cell(lastRow + 4, 2).Value = uniqueInstructors;
+
+                            // Add a chart for enrollment timeline
+                            if (dt.Rows.Count > 0)
+                            {
+                                var chart = worksheet.Workbook.Worksheets.Add("Enrollment Timeline");
+                                chart.Cell(1, 1).Value = "Course Enrollment Timeline";
+                                chart.Cell(1, 1).Style.Font.Bold = true;
+                                chart.Cell(1, 1).Style.Font.FontSize = 14;
+
+                                // Create a summary table instead of pivot table
+                                int summaryRow = 3;
+                                chart.Cell(summaryRow, 1).Value = "Enrollment Timeline Summary";
+                                chart.Cell(summaryRow, 1).Style.Font.Bold = true;
+
+                                // Group enrollments by date
+                                var enrollmentsByDate = dt.AsEnumerable()
+                                    .GroupBy(r => r.Field<string>("Enrollment Date"))
+                                    .OrderBy(g => g.Key);
+
+                                int currentRow = summaryRow + 1;
+                                foreach (var group in enrollmentsByDate)
+                                {
+                                    chart.Cell(currentRow, 1).Value = group.Key;
+                                    chart.Cell(currentRow, 2).Value = group.Count();
+                                    currentRow++;
+                                }
+
+                                // Add total
+                                chart.Cell(currentRow, 1).Value = "Total Enrollments:";
+                                chart.Cell(currentRow, 2).Value = dt.Rows.Count;
+                                chart.Cell(currentRow, 1).Style.Font.Bold = true;
+                                chart.Cell(currentRow, 2).Style.Font.Bold = true;
+
+                                // Auto-fit columns
+                                chart.Columns().AdjustToContents();
+                            }
+
+                            // Enable filtering
+                            var dataRange = worksheet.Range(7, 1, lastRow, lastCol);
+                            dataRange.SetAutoFilter();
+
+                            // Add conditional formatting for enrollment dates
+                            var dateColumn = dt.Columns["Enrollment Date"];
+                            var colIndex = dt.Columns.IndexOf(dateColumn) + 1;
+                            
+                            // Apply conditional formatting to the date column
+                            for (int row = 8; row <= lastRow; row++)
+                            {
+                                var cell = worksheet.Cell(row, colIndex);
+                                if (DateTime.TryParse(cell.Value.ToString(), out DateTime dateValue))
+                                {
+                                    if (dateValue > DateTime.Now.AddDays(-7))
+                                    {
+                                        cell.Style.Fill.BackgroundColor = XLColor.LightBlue;
+                                    }
+                                    else if (dateValue < DateTime.Now.AddDays(-30))
+                                    {
+                                        cell.Style.Fill.BackgroundColor = XLColor.LightGray;
+                                    }
+                                }
+                            }
 
                             // Auto-fit columns
                             worksheet.Columns().AdjustToContents();
