@@ -34,9 +34,9 @@
             label3 = new Label();
             label2 = new Label();
             panel1 = new Panel();
-            dataGridView1 = new DataGridView();
+            instructorGridView = new DataGridView();
             panel1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)instructorGridView).BeginInit();
             SuspendLayout();
             // 
             // btnLogout
@@ -69,7 +69,7 @@
             btnExportExcel.Name = "btnExportExcel";
             btnExportExcel.Size = new Size(209, 27);
             btnExportExcel.TabIndex = 6;
-            btnExportExcel.Text = "Download Students Info";
+            btnExportExcel.Text = "Download Courses Info";
             // 
             // label3
             // 
@@ -97,32 +97,34 @@
             panel1.Controls.Add(btnExportExcel);
             panel1.Controls.Add(label3);
             panel1.Controls.Add(label2);
-            panel1.Location = new Point(12, 12);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(861, 114);
+            panel1.Size = new Size(884, 114);
             panel1.TabIndex = 2;
             // 
-            // dataGridView1
+            // instructorGridView
             // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Location = new Point(12, 151);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.RowHeadersWidth = 62;
-            dataGridView1.Size = new Size(860, 275);
-            dataGridView1.TabIndex = 3;
+            instructorGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            instructorGridView.Dock = DockStyle.Fill;
+            instructorGridView.Location = new Point(0, 114);
+            instructorGridView.Name = "instructorGridView";
+            instructorGridView.RowHeadersWidth = 62;
+            instructorGridView.Size = new Size(884, 336);
+            instructorGridView.TabIndex = 3;
             // 
             // Instructorboard
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(884, 450);
-            Controls.Add(dataGridView1);
+            Controls.Add(instructorGridView);
             Controls.Add(panel1);
             Name = "Instructorboard";
             Text = "Instructorboard";
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
+            ((System.ComponentModel.ISupportInitialize)instructorGridView).EndInit();
             ResumeLayout(false);
         }
 
@@ -134,6 +136,6 @@
         private Label label3;
         private Label label2;
         private Panel panel1;
-        private DataGridView dataGridView1;
+        private DataGridView instructorGridView;
     }
 }

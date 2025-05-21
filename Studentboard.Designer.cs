@@ -47,9 +47,10 @@
             panel1.Controls.Add(btnExportExcel);
             panel1.Controls.Add(label3);
             panel1.Controls.Add(label2);
-            panel1.Location = new Point(12, 12);
+            panel1.Dock = DockStyle.Top;
+            panel1.Location = new Point(0, 0);
             panel1.Name = "panel1";
-            panel1.Size = new Size(861, 114);
+            panel1.Size = new Size(880, 114);
             panel1.TabIndex = 2;
             // 
             // btnLogout
@@ -117,11 +118,11 @@
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             studentGridView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             studentGridView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            studentGridView.Dock = DockStyle.Bottom;
-            studentGridView.Location = new Point(0, 132);
+            studentGridView.Dock = DockStyle.Fill;
+            studentGridView.Location = new Point(0, 114);
             studentGridView.Name = "studentGridView";
             studentGridView.RowHeadersWidth = 62;
-            studentGridView.Size = new Size(880, 318);
+            studentGridView.Size = new Size(880, 336);
             studentGridView.TabIndex = 3;
             // 
             // Studentboard
